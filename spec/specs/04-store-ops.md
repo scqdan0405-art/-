@@ -18,7 +18,9 @@
 1. QRスキャン(カメラ)または予約番号手入力 → 利用者にOTP(メール記載のdrop-off OTP)を口頭確認して入力
 2. `POST /store/verify-dropoff` → 成功で荷物リスト表示
 3. 荷物ごとに: タグ番号入力(物理タグを装着)+ 写真撮影(カメラ、必須。撮影なしでは次へ進めない)
-4. 全item入力後「保管開始」→ `POST /store/checkin` → 返却期限を大きく表示「HH:mm までに返却」
+   - **サイズ修正(12.10-B)**: 実物が予約サイズと違う場合、スタッフがサイズを修正できる。差額を画面表示し店頭精算 → `size_adjustment_vnd` に記録、容量ポイントを実サイズで再確保。修正で容量超過するなら受入不可(運用対応)。
+   - **禁止物(12.10-C)**: 現金・貴重品・危険物等が見つかったら「受入拒否」ボタン → 予約を `cancelled(prohibited_item)`、`refund = total − cancellation_fee`、`refund_status=pending`、audit記録。
+4. 全item入力後「保管開始」→ `POST /store/checkin`(**全item同時**。分割預け入れ不可=12.10-A) → 返却期限を大きく表示「HH:mm までに返却」
 5. 失敗UX: OTP不一致は残り試行回数を表示。ロック時は「運営に連絡してください」+運営電話番号
 
 ## 返すフロー `/store/checkout`

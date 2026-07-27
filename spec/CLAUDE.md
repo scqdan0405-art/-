@@ -12,7 +12,11 @@
 4. `specs/03-user-booking.md` / `04-store-ops.md` / `05-admin.md` — 機能仕様
 5. `specs/06-security.md` — OTP/認可/RLSルール(必読・最優先)
 6. `specs/11-tech-stack.md` — 技術選定・環境設定(確定。DB=Supabase Cloud/Postgres, ORM=Drizzle, host=Vercel)
-7. `TASKS.md` — 実装順序。この順に実装する
+7. `specs/12-domain-rules-and-fixtures.md` — ドメインルール＆期待値(お金/時刻/容量/OTP/状態遷移の入力→期待出力。**そのままユニットテストにする**)
+8. `specs/13-api-contracts.md` — API契約(zodスキーマ=型=バリデーションの**単一ソース**。フロント/バックで共有)
+9. `specs/14-notifications.md` — 通知・メールテンプレ(一覧/タイミング/変数/テンプレマスタ)
+10. `specs/15-acceptance-tests.md` — 受け入れテスト計画(E2Eシナリオ。**全Green が各Phaseの完了条件**)
+11. `TASKS.md` — 実装順序。この順に実装する
 
 仕様と実装が矛盾したら仕様が正。仕様に不足があれば TASKS.md 末尾の「Open Questions」に追記して、妥当なデフォルトで進める。
 

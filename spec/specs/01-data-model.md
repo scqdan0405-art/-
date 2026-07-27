@@ -39,6 +39,29 @@ create table price_plans (
   unique(size, plan_hours, valid_from)
 );
 
+-- スカラー料金設定マスタ(超過単価・打ち止め時間・日額・各種手数料など。画面から変更可能)
+-- サイズ×時間の料金は price_plans、単発の金額系はここで管理。ハードコード禁止。
+create table fee_settings (
+  id uuid primary key default gen_random_uuid(),
+  key text not null check (key in (
+    'overtime_grace_minutes',   -- 超過の無料猶予(分)(既定 15)
+    'overtime_hourly_vnd',      -- 超過単価/時(既定 10,000)
+    'overtime_cap_hours',       -- 超過打ち止め時間(既定 24)
+    'daily_storage_fee_vnd',    -- 打ち止め後の日額(★調査中・未確定。決定後に設定)
+    'cancellation_fee_vnd',     -- 利用者キャンセル手数料(既定 20,000)
+    'noshow_fee_vnd',           -- no-show手数料(既定 20,000)
+    'relocate_after_days',      -- 保管拠点へ移送するまでの日数(既定 7)
+    'insurance_limit_item_vnd', -- 基本補償: 1荷物上限(既定 5,000,000)
+    'insurance_limit_booking_vnd' -- 基本補償: 1予約上限(既定 10,000,000)
+  )),
+  value_vnd bigint,                        -- 金額/数値。未定は null(例: daily_storage_fee_vnd)
+  effective_from date not null default current_date,
+  note text,
+  unique(key, effective_from)
+);
+-- 実装: 参照は「key の effective_from<=today の最新行」。予約時に使った値は該当予約にスナップショット保存。
+-- daily_storage_fee_vnd は当初 null(未確定)。null の間は日額課金を発生させない(0扱い)＋管理者へ要設定を通知。
+
 -- 予約
 create table bookings (
   id uuid primary key default gen_random_uuid(),
@@ -67,8 +90,11 @@ create table bookings (
   insurance_addon_vnd bigint not null default 0,  -- 任意の追加補償オプション料金(0=基本補償のみ)
   storage_started_at timestamptz,
   return_due_at timestamptz,
-  cancelled_reason text,                   -- 'no_show' | 'user_request'
+  cancelled_reason text,                   -- 'no_show' | 'user_request' | 'prohibited_item'
   refund_amount_vnd bigint,
+  refund_status text not null default 'none'
+    check (refund_status in ('none','pending','done')),  -- 返金は方法問わず記録。PoCは pending=運営手動処理(12.9)
+  daily_storage_fee_vnd bigint not null default 0,        -- 24h打ち止め後の日額保管料の累計(12.2)
   created_at timestamptz not null default now()
 );
 
@@ -86,7 +112,9 @@ create table booking_items (
   stored_at timestamptz,
   returned_at timestamptz,
   overtime_fee_vnd bigint not null default 0,
-  overtime_settled boolean not null default false
+  daily_storage_fee_vnd bigint not null default 0,  -- 24h打ち止め後の日額累計(item単位)
+  overtime_settled boolean not null default false,
+  size_adjustment_vnd bigint not null default 0     -- サイズ修正の差額(店頭精算。負=返金相当。12.10-B)
 );
 
 -- 返却用OTP(都度発行・短命)
@@ -99,15 +127,18 @@ create table pickup_otps (
   created_at timestamptz not null default now()
 );
 
--- 容量確保(予約時に押さえる)
+-- 容量確保(予約時に押さえる)。容量は「時間帯の重なり」で判定する(12.4)
 create table capacity_holds (
   id uuid primary key default gen_random_uuid(),
   store_id uuid not null references stores(id),
   booking_id uuid not null references bookings(id),
   points int not null,
-  hold_date date not null,
-  released boolean not null default false
+  occupy_start timestamptz not null,       -- 占有開始(arrival_slot_start→実預入で storage_started_at)
+  occupy_end timestamptz not null,         -- 占有終了(予定=return_due_at。早期受取で now、超過は実際に店舗を出るまで延長)
+  released boolean not null default false,  -- 荷物が店舗から出た(返却 or 保管拠点へ移送)時に true
+  released_at timestamptz
 );
+-- 重なり判定用インデックス: (store_id, occupy_start, occupy_end) where released=false
 
 -- 紹介パートナー(ホテル・バス・ツアー会社等)
 create table partners (
@@ -174,7 +205,8 @@ create sequence booking_no_seq;
 
 ## seed データ
 
-- 店舗3件(BT/BV: capacity 20pt, 営業 07:00–23:00。AP: 30pt, 24h)
+- 店舗3件(BT/BV: capacity 20pt。AP: 30pt)。**PoCの3店舗はすべて24時間営業**(open 00:00 / close 24:00)
 - 各店舗スタッフ2名
 - price_plans 9行(確定値): S=50,000/70,000/100,000・M=70,000/100,000/150,000・L=100,000/150,000/200,000(3h/6h/12h)。points S=1,M=2,L=3
+- fee_settings 初期値: overtime_grace_minutes=15 / overtime_hourly_vnd=10,000 / overtime_cap_hours=24 / cancellation_fee_vnd=20,000 / noshow_fee_vnd=20,000 / relocate_after_days=7 / insurance_limit_item_vnd=5,000,000 / insurance_limit_booking_vnd=10,000,000 / **daily_storage_fee_vnd=null(未確定・調査中)**
 - 管理者ユーザー1件(Supabase Auth, email: admin@example.com / パスワードは .env.example に記載)

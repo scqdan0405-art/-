@@ -1,0 +1,233 @@
+# 12. ドメインルール＆期待値（テスト元データ・確定）
+
+このファイルは、バグが出やすい5領域（お金／時刻／容量／OTP／状態遷移）の**確定ルールと「入力→期待出力」の具体例**。
+**各表はそのまま Vitest のユニットテストにすること**（`describe`ごとに1表）。実装がこの期待値と一致しない場合、実装が誤り。
+
+共通前提：金額は VND 整数（小数なし・すべて10,000の倍数）。時刻は DB=UTC(`timestamptz`)、表示・計算の基準タイムゾーンは `Asia/Ho_Chi_Minh`(UTC+7)。
+
+---
+
+## 12.1 料金計算（items合計）
+
+`bookingTotal(items) = Σ price(size, planHours)`。planHours は予約単位で共通。
+
+料金表（確定・千VND）: S=50/70/100、M=70/100/150、L=100/150/200（3h/6h/12h）。
+
+| # | 入力（size×planHours×個数） | 期待合計(VND) |
+|---|---|---|
+| P1 | S × 3h × 1 | 50,000 |
+| P2 | S × 6h × 2 | 140,000 |
+| P3 | M × 12h × 1 | 150,000 |
+| P4 | L × 12h × 1 ＋ S × 3h × 1 | 250,000 |
+| P5 | L × 12h × 3 | 600,000 |
+| P6 | M × 3h × 1 ＋ M × 6h × 1（同一予約・混在個口） | 170,000 |
+
+- 単価は**予約時点のスナップショット**を `booking_items.unit_price_vnd` に保存し、以後の料金改定の影響を受けない。
+
+---
+
+## 12.2 超過料金（overtime・item単位）
+
+規則：`billable = now - return_due_at`（正のときのみ）。
+**猶予（グレース）**：`billable ≤ overtime_grace_minutes(既定15分)` は fee=0。猶予を超えたら**期限時刻から**数えて切り上げ課金：`fee = ceil(billable / 1h) × overtime_hourly_vnd`、上限 `overtime_cap_hours` 時間分。
+（`overtime_grace_minutes`・`overtime_hourly_vnd`・`overtime_cap_hours` は `fee_settings` マスタ。既定 15／10,000／24。下表は既定値の場合。上限=24×10,000=**240,000**）
+端数は**切り上げ**。`now == return_due_at`（超過0）は fee=0。
+
+| # | 超過時間 | 期待fee(VND) | 補足 |
+|---|---|---|---|
+| O1 | 0（ちょうど期限） | 0 | |
+| O2 | 10分 | 0 | 猶予内(≤15分) |
+| O3 | ちょうど15分 | 0 | 猶予内(境界) |
+| O4 | 16分 | 10,000 | 猶予超え→ceil(0.27h)=1 |
+| O5 | 0.5時間(30分) | 10,000 | |
+| O6 | ちょうど3.0時間 | 30,000 | |
+| O7 | 3.5時間 | 40,000 | |
+| O8 | 3時間1分 | 40,000 | |
+| O9 | ちょうど24.0時間 | 240,000 | 上限 |
+| O10 | 30時間（上限超過） | 240,000 | 24hで打ち止め |
+
+- 超過はitemごとに計算。2個口が両方超過なら各itemに fee が付く。
+- overtime fee は 12.5 の精算（gross）には**含めない**（店頭で別精算。`overtimeSettled` フラグで管理）。
+
+**24時間打ち止め後の日額保管料**：`return_due_at + overtime_cap_hours(=24)` を過ぎたら、超過料金は 240,000 で固定し、以降は **日額保管料** に切り替える。開始した日ごとに加算（切り上げ・打ち止め到達の瞬間から24時間区切り）。
+
+**金額はすべて `fee_settings` マスタから取得（ハードコード禁止）**：`overtime_hourly_vnd`・`overtime_cap_hours`・`daily_storage_fee_vnd`。
+`daily_storage_fee_vnd` は **★調査中・未確定（初期値 null）**。**null の間は日額を発生させない（0扱い）**＋管理者へ「要設定」を通知する。値が設定されたら以下のように加算。
+
+下表は **daily_storage_fee_vnd = 50,000 を設定した場合の例**（値が変われば期待値も比例して変わる。テストはマスタ値を注入して検証）。
+
+| # | 経過（return_due_at から） | 超過料金 | 日額(設定=50,000時) | 合計(VND) |
+|---|---|---|---|---|
+| D1 | 24時間ちょうど | 240,000 | 0 | 240,000 |
+| D2 | 24時間+1分（＝2日目突入） | 240,000 | 50,000 | 290,000 |
+| D3 | 48時間+1分（＝3日目） | 240,000 | 100,000 | 340,000 |
+| D4 | 日額が null（未設定） | 240,000 | 0（発生させない） | 240,000 |
+
+- 日額は `lib/overtime.ts` の同一関数内で算出（超過料金と地続き）。金額引数は `fee_settings` から渡す。
+- **注意（運用）**：放置荷物は店舗の枠を占有し回転売上を妨げるため、日額課金だけに頼らず 12.4 の通り **7日で保管拠点へ移送して店舗枠を解放**する（日本のロッカー運用に準拠）。日額はその間も加算。
+
+---
+
+## 12.3 時刻・起算・no-show・キャンセル
+
+規則：プラン時間は**最初のitemの預け入れ完了（stored）時刻**から起算。`return_due_at = storage_started_at + planHours`。
+
+| # | 入力 | 期待出力 |
+|---|---|---|
+| T1 | dropoff 2026-07-27 09:15(ICT), plan 6h | return_due_at = 2026-07-27 15:15(ICT) = 08:15 UTC |
+| T2 | dropoff 2026-07-27 20:00(ICT), plan 12h | return_due_at = 2026-07-28 08:00(ICT)（日跨ぎ） |
+| T3 | DB保存値（T1のdue）を画面表示 | "15:15"（Asia/Ho_Chi_Minh固定。ブラウザTZに依存しない） |
+
+**no-show**：`status=paid` かつ `arrival_slot_start + 3h < now` で預け入れ無し → `cancelled(reason=no_show)`。
+`refund = max(0, total - noshow_fee_vnd)`（`noshow_fee_vnd` は `fee_settings` マスタ。既定 20,000）。容量ホールドは解放。
+返金は決済方法に関わらず `refund_amount_vnd` と `refund_status='pending'` を記録（12.9）。
+
+| # | total(VND) | 期待refund(VND) |
+|---|---|---|
+| N1 | 140,000 | 120,000 |
+| N2 | 50,000 | 30,000 |
+
+**利用者キャンセル**（預け入れ前＝`status=paid`のみ可）：`refund = max(0, total - cancellation_fee_vnd)`（マスタ。既定 20,000）。`stored`以降は不可（12.6参照）。
+
+---
+
+## 12.4 容量（サイズ別ポイント制・時間の重なりで判定・同時実行）
+
+ポイント：S=1, M=2, L=3。
+
+**重要：容量は「日付ごとの合計」ではなく「時間帯の重なり」で管理する**（夜またぎ・日またぎのオーバーブッキング防止）。
+各ホールドは占有区間 `[occupy_start, occupy_end)` を持つ：
+- `occupy_start` = 予約の到着時間帯開始（`arrival_slot_start`）。実預け入れ後は `storage_started_at`。
+- `occupy_end` = `return_due_at`（＝予定解放時刻）。実際に早く受け取れば即 `now` で解放。超過中は実際に荷物が店舗から出る（返却 or 移送）まで占有継続。
+
+予約可否：新規予約の区間と**重なる**有効ホールドの `Σ points` ＋ 新規points ≤ `capacity_points`。
+
+| # | 店舗cap | 状況 | 新規予約 | 期待 |
+|---|---|---|---|---|
+| C1 | 20 | 同時間帯に18pt占有 | M(2pt)・同時間帯 | 成功（重なり合計20） |
+| C2 | 20 | 同時間帯に18pt占有 | L(3pt)・同時間帯 | **CAPACITY_FULL(409)** |
+| C3 | 20 | 09:00–21:00 に20pt占有 | S(1pt)・**22:00–翌01:00**（重ならない） | 成功（重複なし） |
+| C4 | 20 | 23:00預入・12h(翌11:00まで)で18pt | 翌 08:00 に M(2pt)（翌11:00まで重なる） | **CAPACITY_FULL(409)**（＝旧モデルで漏れていた夜またぎ） |
+| C5 | 20 | 空き | L×3個(9pt) | 成功 |
+
+**同時実行（最重要・レース）**：重なり合計18・cap20 のとき、同区間の M(2pt)予約が2件ほぼ同時。
+期待：**片方のみ成功、もう片方は CAPACITY_FULL**。合計が cap を超えてはならない。
+実装：予約作成トランザクション内で対象店舗の該当区間ホールドを `SELECT ... FOR UPDATE`（店舗行のアドバイザリロック等）で直列化してから重なりを再計算・確保する。楽観的な read→check→write は不可。
+
+**店舗枠のホールド解放（＝occupy_end 確定）条件**：
+- 通常：全item returned（＝booking completed）／ cancelled ／ no_show。
+- **超過・放置**：荷物が**店舗から物理的に出た時**に店舗枠を解放する。すなわち returned、または `abandoned` 前提で**保管拠点へ移送**した時（12.4補足）。
+- ※「店舗枠の占有」と「法的な保管・処分の期限」は別管理。後者はベトナム法に従い、移送後も保管拠点側でカウント（要件定義書v1.1 §12.3）。放置荷物は移送するまで店舗枠を占有し続ける。
+
+---
+
+## 12.5 精算（収益分配・月次集計）
+
+gross = 対象期間の予約合計（超過料金は含めない）。控除率：店舗40%・決済3%・保険6%・システム5%。
+`deduction_i = roundHalfUp(gross × rate_i)`、`net = gross - Σ deduction_i`（netは残余で必ず一致させる）。
+
+| # | gross(VND) | 店舗40% | 決済3% | 保険6% | システム5% | net(残り) |
+|---|---|---|---|---|---|---|
+| R1 | 50,000 | 20,000 | 1,500 | 3,000 | 2,500 | 23,000 |
+| R2 | 70,000 | 28,000 | 2,100 | 4,200 | 3,500 | 32,200 |
+| R3 | 250,000 | 100,000 | 7,500 | 15,000 | 12,500 | 115,000 |
+| R4 | 1,000,000 | 400,000 | 30,000 | 60,000 | 50,000 | 460,000 |
+
+- 現行の料金はすべて10,000の倍数のため控除は割り切れる（端数は出ない）。ただし料金改定に備え、丸め規則（roundHalfUp＋netは残余）を必ず実装しテストすること。
+- 検証：`店舗+決済+保険+システム+net == gross` が常に成立（各行で assert）。
+
+---
+
+## 12.6 状態遷移（許可／拒否）
+
+許可される遷移（これ以外は `INVALID_TRANSITION(409)`）：
+- booking: `pending_payment→paid→active→completed` / `paid→cancelled` / `pending_payment→payment_failed`
+- item: `awaiting_dropoff→stored→returned` / `stored→overdue` / `overdue→returned` / `overdue→abandoned`
+
+| # | 操作 | 事前状態 | 期待 |
+|---|---|---|---|
+| S1 | checkin（預かる） | booking=paid, item=awaiting_dropoff | 成功：item→stored、初回で booking→active・storage_started_at設定 |
+| S2 | checkin | booking=pending_payment | **409 INVALID_TRANSITION**（未決済は預かれない） |
+| S3 | checkin（同一item2回目） | item=stored | **409**（既に預入済み） |
+| S4 | checkout（返す） | item=stored, pickup OTP有効 | 成功：item→returned |
+| S5 | checkout | item=awaiting_dropoff | **409**（預かっていない） |
+| S6 | checkout | item=overdue, overtimeSettled=false | **409 OVERTIME_UNSETTLED** |
+| S7 | checkout | item=overdue, overtimeSettled=true | 成功：item→returned |
+| S8 | 利用者キャンセル | booking=active（stored済） | **409**（キャンセルはpaidのみ） |
+| S9 | 全item返却完了 | booking=active, 残りstored無し | 成功：booking→completed、ホールド解放 |
+
+**部分受け取り**：2個口予約で1個だけ checkout →
+- 返した item は returned、もう1個は stored のまま、booking は **active 継続**。
+- 2個目も returned になった時点で booking→completed。
+
+すべての状態遷移は `audit_logs` に記録（actor・action・before/after・booking_id・item_id）。
+
+---
+
+## 12.7 OTP（本人確認）
+
+- drop-off OTP：予約確定時に生成、6桁、bcryptハッシュ保存、平文提示は「完了画面（初回）」と「確認メール」のみ。
+- pickup OTP：店舗の受取操作で都度生成、6桁、`expires_at = now+10分`、**1回使用**。発行時に同予約の未使用pickupを失効。
+- 照合：一致→成功＋`otp_fail_count`リセット。不一致→`otp_fail_count++`。`>=5`で `otp_locked_until = now+15分`、ロック中は **423**。
+- **順序**：先に一致判定 → 一致なら成功、不一致なら加算＆ロック判定。
+- 期限切れ／使用済みpickup OTP → **401 OTP_INVALID**（fail_countは**加算しない**＝期限切れでロックさせない）。桁違いの誤入力のみ加算対象。
+
+| # | シナリオ | 期待 |
+|---|---|---|
+| K1 | 誤り4回→正しいOTP | 5回目で**成功**（4回目時点count=4、正解でリセット） |
+| K2 | 誤り5回 | 5回目で **423ロック（15分）**、以後は正解でも423（ロック解除まで） |
+| K3 | pickup OTP を11分後に使用 | **401 OTP_INVALID**（count加算なし） |
+| K4 | pickup OTP を2回使用（1回目成功後） | 2回目は **401**（単回使用） |
+| K5 | drop-off OTP を返却(checkout)で使用 | **401**（受取にはpickup OTPが必要。使い回し不可） |
+
+---
+
+## 12.8 冪等性（二重送信）
+
+`POST /api/v1/bookings` は `Idempotency-Key` ヘッダ対応。
+
+| # | シナリオ | 期待 |
+|---|---|---|
+| I1 | 同一Idempotency-Keyで2回送信 | 2回目は1回目と**同一のbooking**（同一booking_no）を返す。予約・決済・容量ホールドは1件のみ |
+| I2 | 異なるKeyで2回送信 | それぞれ別予約（容量が許せば） |
+
+---
+
+## 12.10 追加の業務ルール（確定）
+
+**A. 複数個口の預け入れ**：1予約の全itemは**まとめて1回で預け入れる**（checkinは全item同時）。個口ごとの別タイミング預け入れは不可。別々の時間に預けたい場合は**別予約**にする。プラン起算は予約単位（＝唯一の預け入れ時刻＝`storage_started_at`）。
+
+**B. サイズ不一致（予約と実物が違う）**：店舗が預け入れ時に実サイズへ**修正できる**。差額は店頭で精算。
+- item の `size` を修正 → `size_adjustment_vnd = price(実size) − price(予約size)`（マスタ料金で算出、負なら返金相当）を記録。容量ポイントも実サイズで再確保（超過するなら受入不可＝別対応）。
+
+| # | 予約 | 実物 | 期待 |
+|---|---|---|---|
+| G1 | S 6h（70,000） | M | 差額 +30,000（M6h=100,000−70,000）を店頭精算、size→M、points 1→2 |
+| G2 | L 3h（100,000） | S | 差額 −50,000（S3h=50,000）、返金相当を記録、size→L→S、points 3→1 |
+
+**C. 禁止物が見つかった**：受け入れ拒否。予約を `cancelled(reason='prohibited_item')` にし、`refund = max(0, total − cancellation_fee_vnd)`、`refund_status='pending'`。事象は `audit_logs` に記録。容量ホールド解放。
+
+**D. 早期受け取り**：プラン時間内に早く受け取っても**返金なし**（先払い定額）。返却時刻に関わらず追加も減額もしない。
+
+**E. 予約の変更・延長（PoC非対応）**：預け入れ前のサイズ/日時変更は不可（キャンセル＋取り直し）。保管中の時間延長も不可（超過料金で吸収）。将来対応。
+
+## 12.9 PoCの割り切りと設計ガード（将来のバージョンアップで不具合を出さないため）
+
+以下は PoC スコープ外だが、**今このガードを守れば将来追加しても既存を壊さない**。
+
+- **営業時間中の超過停止（③・将来）**：PoCの3店舗は24時間営業のため、超過は連続加算でよい。ただし
+  - `stores.open_time / close_time` はスキーマに保持し続ける（24h店は 00:00–24:00）。
+  - 超過・日額の計算は **`lib/overtime.ts` の単一関数に閉じ込める**（引数に店舗の営業時間を渡せる形にしておく）。
+  - 将来「閉店時間帯は超過を止める」を入れる時は、この関数だけ差し替える。データ移行・他画面の変更は不要。
+- **VietQR/MoMo の自動返金（⑤・将来）**：PoCでは決済方法に関わらず、返金は
+  - `bookings.refund_amount_vnd` と返金状態（`refund_status: none | pending | done`）を**必ず記録**する。
+  - PoCは `pending` にして**運営が手動処理**（カードは任意で自動化可）。
+  - 将来 VietQR/MoMo の自動返金を足しても、記録が残っているので取りこぼさない。
+- **超過料金の店舗別ルール**：現状は全店舗一律（10,000/h・日額50,000）。将来店舗別にする場合に備え、値は料金マスタ側に置けるようにしておく（ハードコードしない）。
+
+## 実装メモ（Codex向け）
+
+- 12.1〜12.8の各表を、純粋関数（pricing / overtime / due計算 / capacity判定 / split / 状態遷移バリデータ / OTP判定）に対する Vitest のテーブル駆動テストとして実装する。
+- 純粋ロジックはDBから切り離して単体テスト可能に設計（例：`lib/pricing.ts`, `lib/overtime.ts`, `lib/capacity.ts`, `lib/settlement.ts`, `lib/state-machine.ts`）。
+- 同時実行（12.4）とロック（12.7 K2）はDB/統合テストで検証。
+- ここに無いケースで判断したら `spec/TASKS.md` の Open Questions に追記。

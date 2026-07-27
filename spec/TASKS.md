@@ -7,6 +7,7 @@
 - [ ] **T01** プロジェクト初期化: Next.js(App Router, TS strict)+ Tailwind + next-intl(en/vi/ja)+ ESLint/Vitest。`/`, `/store`, `/admin` のプレースホルダページ
 - [ ] **T02** Supabase セットアップ: `specs/01-data-model.md` のマイグレーション+seed。RLS全テーブル有効化(anon全拒否)。`lib/db.ts`(service roleクライアント、サーバー専用)
 - [ ] **T03** 共通基盤: zodエラーハンドラ、audit_logsヘルパー、レート制限、`lib/payment/`(PaymentProviderインターフェース+MockProvider、本番用twoc2pスタブ=specs/10)、メール送信抽象(`lib/mail/`、devはconsole出力)
+- [ ] **T03c** API契約モジュール `src/contracts/`(specs/13): common/user/store/admin の zodスキーマ+`z.infer`型、共通`ApiError`、型付き`lib/api-client.ts`。以降の全APIはこの契約を入口/出口で`parse`する
 
 ## Phase 2: 予約(利用者)
 
@@ -38,7 +39,7 @@
 ## Phase 6: 仕上げ
 
 - [ ] **T15** i18n全キー整備(en/vi/ja完備、ko/zh-CN/zh-TW/hiはenフォールバック)、モバイル実機幅(375px)確認、Lighthouseでパフォーマンス確認
-- [ ] **T16** E2Eシナリオテスト(Playwright): 予約→預け入れ→部分返却→超過→完了 のハッピーパス+OTPロック
+- [ ] **T16** E2Eシナリオテスト(Playwright): **specs/15 の E1〜E15 を実装**(時刻注入・cron手動起動・メールモックを利用)。全Greenが完了条件
 - [ ] **T17** セキュリティ自己監査: `specs/06-security.md` の全項目をチェックリスト化して検証結果を `SECURITY_AUDIT.md` に記録
 
 ## Open Questions(実装中に判断したことを追記)

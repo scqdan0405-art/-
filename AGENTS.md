@@ -12,7 +12,11 @@
 6. `spec/specs/06-security.md` — OTP/認可/RLS（**最優先で厳守**）
 7. `spec/specs/07-growth-channels.md` / `08-ota-integration.md` / `09-source-coverage.md` / `10-payment-provider.md`
 8. `spec/specs/11-tech-stack.md` — 技術選定・環境設定（**確定**。DB=Supabase Cloud/Postgres・ORM=Drizzle・host=Vercel）
-9. `spec/TASKS.md` — 実装順（この順に実装）
+9. `spec/specs/12-domain-rules-and-fixtures.md` — ドメインルール＆期待値（**入力→期待出力表をそのままユニットテストにする**）
+10. `spec/specs/13-api-contracts.md` — API契約（zodスキーマ=型=バリデーションの**単一ソース**。手書き型禁止・`z.infer`で共有）
+11. `spec/specs/14-notifications.md` — 通知・メールテンプレ（一覧/タイミング/変数/`notification_templates`マスタ）
+12. `spec/specs/15-acceptance-tests.md` — 受け入れテスト計画（E2Eシナリオ。**全Greenが各Phaseの完了条件**）
+13. `spec/TASKS.md` — 実装順（この順に実装）
 
 仕様と実装が矛盾したら **仕様が正**。不足は `spec/TASKS.md` 末尾の Open Questions に追記し、妥当なデフォルトで進める。
 
