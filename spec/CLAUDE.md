@@ -11,7 +11,8 @@
 3. `specs/02-api.md` — APIエンドポイント定義
 4. `specs/03-user-booking.md` / `04-store-ops.md` / `05-admin.md` — 機能仕様
 5. `specs/06-security.md` — OTP/認可/RLSルール(必読・最優先)
-6. `TASKS.md` — 実装順序。この順に実装する
+6. `specs/11-tech-stack.md` — 技術選定・環境設定(確定。DB=Supabase Cloud/Postgres, ORM=Drizzle, host=Vercel)
+7. `TASKS.md` — 実装順序。この順に実装する
 
 仕様と実装が矛盾したら仕様が正。仕様に不足があれば TASKS.md 末尾の「Open Questions」に追記して、妥当なデフォルトで進める。
 

@@ -11,7 +11,8 @@
 5. `spec/specs/03-user-booking.md` / `04-store-ops.md` / `05-admin.md` — 機能仕様
 6. `spec/specs/06-security.md` — OTP/認可/RLS（**最優先で厳守**）
 7. `spec/specs/07-growth-channels.md` / `08-ota-integration.md` / `09-source-coverage.md` / `10-payment-provider.md`
-8. `spec/TASKS.md` — 実装順（この順に実装）
+8. `spec/specs/11-tech-stack.md` — 技術選定・環境設定（**確定**。DB=Supabase Cloud/Postgres・ORM=Drizzle・host=Vercel）
+9. `spec/TASKS.md` — 実装順（この順に実装）
 
 仕様と実装が矛盾したら **仕様が正**。不足は `spec/TASKS.md` 末尾の Open Questions に追記し、妥当なデフォルトで進める。
 
