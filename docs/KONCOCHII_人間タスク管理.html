@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KONCOCHII 人間タスク管理</title>
+<style>
+:root{
+  --navy:#1F3864; --navy2:#2b4a86; --accent:#e8850c; --green:#1a9e5c; --red:#c0392b;
+  --bg:#f4f6fa; --card:#fff; --line:#dde3ee; --text:#232a3a; --muted:#697089;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Hiragino Sans','Yu Gothic',sans-serif;line-height:1.6}
+header.top{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:26px 24px}
+header.top h1{font-size:24px;letter-spacing:1px}
+header.top p{opacity:.9;margin-top:5px;font-size:14px}
+.bar{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.progwrap{flex:1;min-width:180px;background:#e7edf9;border-radius:20px;height:16px;overflow:hidden}
+.prog{height:100%;background:var(--green);width:0;transition:width .3s}
+.bar b{color:var(--navy);white-space:nowrap}
+.filter{display:flex;gap:6px}
+.filter button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;color:var(--muted)}
+.filter button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+main{max-width:1080px;margin:0 auto;padding:20px 24px}
+.phase{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 0;margin-bottom:18px;overflow:hidden}
+.phase h2{color:#fff;background:var(--navy);font-size:16px;padding:12px 18px;margin:-8px 0 0;display:flex;justify-content:space-between;align-items:center}
+.phase h2 span{font-size:12px;font-weight:normal;opacity:.85}
+.desc{font-size:13px;color:var(--muted);padding:10px 18px 4px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{background:#eef3fb;color:var(--navy);text-align:left;padding:8px 10px;font-size:12px;border-bottom:1px solid var(--line)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.done td{background:#f2faf5}
+tr.done .task{text-decoration:line-through;color:var(--muted)}
+.task b{color:var(--navy)}
+.task small{display:block;color:var(--muted);font-weight:normal}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--green);cursor:pointer}
+input.f{border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:13px;width:100%;font-family:inherit}
+input.f:focus{outline:none;border-color:var(--navy2)}
+.pri{font-size:11px;padding:2px 8px;border-radius:8px;font-weight:700;white-space:nowrap}
+.pri.p1{background:#fde3e3;color:var(--red)}
+.pri.p2{background:#fdeeda;color:var(--accent)}
+.pri.p3{background:#e7edf9;color:var(--navy)}
+.col-c{width:44px;text-align:center}
+.col-p{width:78px}
+.col-o{width:130px}
+.col-d{width:130px}
+.tools{max-width:1080px;margin:0 auto;padding:0 24px 30px;display:flex;gap:10px;flex-wrap:wrap}
+.tools button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--navy)}
+.tools button:hover{background:#eef3fb}
+.note{background:#fff8ee;border:1px solid #f5d9a8;border-radius:9px;padding:10px 14px;font-size:13px;color:#7a5a1e;margin:0 24px 16px;max-width:1080px}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
+@media(max-width:760px){.col-o,.col-d{display:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>✅ KONCOCHII 人間タスク管理</h1>
+  <p>PoC立ち上げに向けて「人がやること」を着手順に。担当者・期限を書き込めます（自動保存）。</p>
+</header>
+
+<div class="bar">
+  <b id="counter">0 / 0 完了</b>
+  <div class="progwrap"><div class="prog" id="prog"></div></div>
+  <div class="filter">
+    <button class="on" data-f="all">すべて</button>
+    <button data-f="open">未完了</button>
+    <button data-f="p1">最優先</button>
+  </div>
+</div>
+
+<div class="note">💡 A（契約・外部手続き）が全体のボトルネック。ここを早く着手すれば、B以降は並行して進められます。チェック・入力内容はこのブラウザに自動保存されます。</div>
+
+<main id="app"></main>
+
+<div class="tools">
+  <button id="exportBtn">📋 テキストで書き出し（コピー用）</button>
+  <button id="resetBtn">↺ すべてリセット</button>
+</div>
+
+<footer>KONCOCHII — Japan Quality, Vietnam Solution ／ 人間タスク管理</footer>
+
+<script>
+const PHASES=[
+ {id:"A",title:"A. 契約・外部手続き",sub:"最優先・リードタイム長い",desc:"時間がかかるので最初に着手。ここが全体の律速。",
+  tasks:[
+   {p:1,t:"決済PSP（2C2P）とマーチャント契約・KYC",s:"実手数料率を確定 → 精算モデルの「約3%」を実レートに更新"},
+   {p:1,t:"保険会社と包括保険契約",s:"補償上限500万/1,000万VND・免責・保険料率を確定（追加補償は将来）"},
+   {p:1,t:"コンビニ3店舗と業務委託契約",s:"委託料40%・営業時間・受入容量（サイズ別ポイント）を取り決め"},
+   {p:1,t:"現地弁護士に法務確認",s:"利用規約・放置荷物の処分日数と手続き・個人情報保護（PDPD）"},
+   {p:2,t:"ベトナム事業体・VND受取口座の準備",s:"決済入金と精算に必要"}
+ ]},
+ {id:"B",title:"B. 実装の準備と発注",sub:"Aと並行可",desc:"仕様パッケージ（koncochii-specs）を使って開発を進める。",
+  tasks:[
+   {p:2,t:"空のGitリポジトリに仕様パッケージを配置",s:"koncochii-specs の中身をルートへ"},
+   {p:2,t:"Supabaseプロジェクト作成・環境変数設定",s:"URL/キーを .env.local に"},
+   {p:2,t:"メール送信サービス契約（Resend等）",s:"予約確認・OTP・通知メール用"},
+   {p:2,t:"Claude Code / Codex に実装を指示",s:"TASKS.mdのT01から。Phase単位で動作確認しながら"}
+ ]},
+ {id:"C",title:"C. コンテンツ・文面の確定",sub:"人が書く/監修する部分",desc:"システムでは作れない、確定・監修が必要な中身。",
+  tasks:[
+   {p:2,t:"多言語の翻訳監修",s:"特にベトナム語・中国語繁体字。7言語分"},
+   {p:1,t:"利用規約・免責・禁止物リストの文面確定",s:"法務確認とセット。予約時同意に使う"},
+   {p:3,t:"店舗ポスター/POPデザイン・Googleビジネスプロフィール登録",s:"店頭QR・地図流入の準備"},
+   {p:3,t:"OTA掲載申請（Trip.com / Klook / KKday）",s:"まずはリンク送客レベル"}
+ ]},
+ {id:"D",title:"D. 運用準備",sub:"開業前",desc:"店舗が実際に回せる状態にする。",
+  tasks:[
+   {p:2,t:"店舗スタッフ研修",s:"預かる・返す・写真撮影・OTP確認の手順"},
+   {p:3,t:"物理タグ（TAG-xxx）の用意",s:"荷物に付ける番号タグ"},
+   {p:3,t:"運営側の問い合わせ対応体制",s:"店舗は対応しない。運営が一括対応"}
+ ]},
+ {id:"E",title:"E. テスト・検証",sub:"随時〜PoC期間",desc:"作ったものが正しく動くか、事業として成立するかを確認。",
+  tasks:[
+   {p:2,t:"プロトタイプ確認",s:"テスト確認ガイドのチェックリスト14項目"},
+   {p:1,t:"実装後の受け入れテスト",s:"本番仕様どおり動くか（OTP分離・写真必須・部分返却など）"},
+   {p:2,t:"PoC KPI測定",s:"1店舗1日5〜10件・自然流入比率・決済完了率などを2〜3か月"}
+ ]}
+];
+
+const KEY="koncochii_human_tasks_v1";
+let state={};
+try{state=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+
+const app=document.getElementById('app');
+let idx=0; const ids=[];
+PHASES.forEach(ph=>{
+  const sec=document.createElement('section');sec.className='phase';
+  let rows="";
+  ph.tasks.forEach(tk=>{
+    const id=ph.id+(++idx); ids.push(id);
+    const st=state[id]||{done:false,owner:"",due:""};
+    state[id]=st;
+    rows+=`<tr data-id="${id}" data-p="${tk.p}" class="${st.done?'done':''}">
+      <td class="col-c"><input type="checkbox" ${st.done?'checked':''} data-k="done"></td>
+      <td class="task"><b>${tk.t}</b><small>${tk.s}</small></td>
+      <td class="col-p"><span class="pri p${tk.p}">${tk.p===1?'最優先':tk.p===2?'重要':'通常'}</span></td>
+      <td class="col-o"><input class="f" data-k="owner" placeholder="担当者" value="${st.owner||''}"></td>
+      <td class="col-d"><input class="f" data-k="due" placeholder="期限 例:8/15" value="${st.due||''}"></td>
+    </tr>`;
+  });
+  sec.innerHTML=`<h2>${ph.title}<span>${ph.sub}</span></h2><div class="desc">${ph.desc}</div>
+    <table><thead><tr><th class="col-c">済</th><th>やること</th><th class="col-p">優先</th><th class="col-o">担当者</th><th class="col-d">期限</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+  app.appendChild(sec);
+});
+
+app.addEventListener('input',e=>{
+  const tr=e.target.closest('tr'); if(!tr)return;
+  const id=tr.dataset.id, k=e.target.dataset.k;
+  if(k==='done'){state[id].done=e.target.checked;tr.classList.toggle('done',e.target.checked);}
+  else state[id][k]=e.target.value;
+  persist();refresh();
+});
+
+let filter="all";
+document.querySelectorAll('.filter button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.filter button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');filter=b.dataset.f;applyFilter();
+  });
+});
+function applyFilter(){
+  document.querySelectorAll('#app tr[data-id]').forEach(tr=>{
+    const done=state[tr.dataset.id].done, p=tr.dataset.p;
+    let show=true;
+    if(filter==='open') show=!done;
+    if(filter==='p1') show=(p==='1');
+    tr.style.display=show?'':'none';
+  });
+}
+function refresh(){
+  const total=ids.length, done=ids.filter(i=>state[i].done).length;
+  document.getElementById('counter').textContent=done+" / "+total+" 完了";
+  document.getElementById('prog').style.width=(total?done/total*100:0)+"%";
+}
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  if(!confirm('すべてのチェック・担当者・期限を消します。よろしいですか？'))return;
+  ids.forEach(i=>state[i]={done:false,owner:"",due:""});persist();location.reload();
+});
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  let out="KONCOCHII 人間タスク\n\n";
+  PHASES.forEach(ph=>{
+    out+=`【${ph.title}】\n`;
+    let n=ids.filter(i=>i.startsWith(ph.id));
+    ph.tasks.forEach((tk,j)=>{
+      const id=ph.id+(ids.indexOf(n[j])+1); const s=state[n[j]];
+      out+=`  [${s.done?'x':' '}] ${tk.t}`;
+      if(s.owner)out+=` / 担当:${s.owner}`;
+      if(s.due)out+=` / 期限:${s.due}`;
+      out+="\n";
+    });
+    out+="\n";
+  });
+  navigator.clipboard.writeText(out).then(()=>alert('コピーしました。メールやドキュメントに貼り付けできます。'),()=>{
+    prompt('以下をコピーしてください:',out);
+  });
+});
+applyFilter();refresh();
+</script>
+</body>
+</html>

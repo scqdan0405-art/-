@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KONCOCHII - Luggage Storage (Prototype)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --navy:#1F3864; --navy2:#2b4a86; --accent:#e8850c; --green:#1a9e5c;
+  --bg:#f2f4f8; --card:#fff; --line:#dde3ee; --text:#22293a; --muted:#6b7387;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI','Hiragino Sans','Yu Gothic',sans-serif}
+body{background:var(--bg);color:var(--text)}
+header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+header h1{font-size:20px;letter-spacing:1px}
+header h1 span{color:#ffd166;font-size:12px;display:block;font-weight:normal;letter-spacing:0}
+.lang select{padding:6px 10px;border-radius:6px;border:none;font-size:13px}
+nav{display:flex;background:#fff;border-bottom:2px solid var(--line);position:sticky;top:0;z-index:5}
+nav button{flex:1;padding:12px 6px;border:none;background:none;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent}
+nav button.active{color:var(--navy);border-bottom-color:var(--accent)}
+main{max-width:760px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(31,56,100,.06)}
+.card h2{font-size:16px;color:var(--navy);margin-bottom:10px}
+.card h3{font-size:14px;color:var(--navy);margin:10px 0 6px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:#e7edf9;color:var(--navy);margin-left:6px}
+.badge.green{background:#e2f5ea;color:var(--green)}
+.badge.orange{background:#fdeeda;color:var(--accent)}
+.badge.red{background:#fde3e3;color:#c0392b}
+.store{display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.15s}
+.store:hover{border-color:var(--navy);background:#f7f9fd}
+.store.sel{border:2px solid var(--navy);background:#eef3fb}
+.store b{font-size:14px}
+.store small{color:var(--muted);display:block;margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opt{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;cursor:pointer;background:#fff}
+.opt.sel{border:2px solid var(--navy);background:#eef3fb;font-weight:700}
+.opt small{display:block;color:var(--muted);font-size:11px;margin-top:3px;font-weight:normal}
+.price{font-size:22px;font-weight:800;color:var(--navy);text-align:right}
+.price small{font-size:12px;color:var(--muted);font-weight:normal}
+label{font-size:12px;color:var(--muted);display:block;margin:8px 0 3px}
+input[type=text],input[type=email],select.inp{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+.btn{display:block;width:100%;padding:13px;border:none;border-radius:10px;background:var(--navy);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px}
+.btn:disabled{background:#b8c2d8;cursor:not-allowed}
+.btn.orange{background:var(--accent)}
+.btn.green{background:var(--green)}
+.btn.ghost{background:#fff;color:var(--navy);border:1.5px solid var(--navy)}
+.pay{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.pay div{border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;background:#fff}
+.pay div.sel{border:2px solid var(--navy);background:#eef3fb;font-weight:700}
+.qrbox{display:flex;flex-direction:column;align-items:center;padding:14px;background:#fff;border:2px dashed var(--navy);border-radius:12px;margin:10px 0}
+.otp{font-size:30px;font-weight:800;letter-spacing:8px;color:var(--accent);margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--navy);color:#fff;padding:8px;text-align:left;font-size:12px}
+td{padding:8px;border-bottom:1px solid var(--line)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi .card{margin:0;text-align:center;padding:14px}
+.kpi .num{font-size:26px;font-weight:800;color:var(--navy)}
+.kpi .lbl{font-size:12px;color:var(--muted)}
+.steps{display:flex;gap:4px;margin-bottom:14px}
+.steps div{flex:1;text-align:center;font-size:11px;padding:7px 2px;background:#e7edf9;color:var(--navy);border-radius:6px}
+.steps div.on{background:var(--navy);color:#fff;font-weight:700}
+.notice{font-size:12px;color:var(--muted);background:#f7f9fd;border-radius:8px;padding:10px;margin-top:10px;line-height:1.6}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.hidden{display:none}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:30px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);opacity:0;transition:.3s;pointer-events:none;z-index:99}
+.toast.show{opacity:1}
+.split div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.split div:last-child{border:none;font-weight:800;color:var(--navy)}
+@media(max-width:520px){.grid{grid-template-columns:repeat(3,1fr)}.row{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧳 KONCOCHII <span>荷物預かりサービス | Luggage Storage — PoC Prototype</span></h1>
+  <div class="lang">
+    <select id="langSel" onchange="setLang(this.value)">
+      <option value="ja">🇯🇵 日本語</option>
+      <option value="en">🇺🇸 English</option>
+      <option value="vi">🇻🇳 Tiếng Việt</option>
+      <option value="ko">🇰🇷 한국어</option>
+      <option value="zh">🇨🇳 中文</option>
+    </select>
+  </div>
+</header>
+<nav>
+  <button id="tab-user" class="active" onclick="showTab('user')">👤 <span data-i18n="tabUser">利用者</span></button>
+  <button id="tab-store" onclick="showTab('store')">🏪 <span data-i18n="tabStore">店舗</span></button>
+  <button id="tab-admin" onclick="showTab('admin')">📊 <span data-i18n="tabAdmin">管理</span></button>
+</nav>
+<main>
+
+<!-- ================= USER ================= -->
+<section id="view-user">
+  <div class="steps" id="uSteps">
+    <div class="on" data-i18n="st1">① 店舗</div><div data-i18n="st2">② プラン</div><div data-i18n="st3">③ 決済</div><div data-i18n="st4">④ QR/OTP</div>
+  </div>
+
+  <div class="card" id="uStep1">
+    <h2 data-i18n="findStore">🗺️ 預け先の店舗を探す</h2>
+    <div id="storeList"></div>
+  </div>
+
+  <div class="card hidden" id="uStep2">
+    <h2 data-i18n="selPlan">🧳 サイズと時間を選ぶ</h2>
+    <h3 data-i18n="size">サイズ</h3>
+    <div class="grid" id="sizeGrid"></div>
+    <h3 data-i18n="plan">時間プラン</h3>
+    <div class="grid" id="planGrid"></div>
+    <label data-i18n="bags">個数</label>
+    <select class="inp" id="bagCount"><option>1</option><option>2</option><option>3</option></select>
+    <div style="margin-top:12px" class="price" id="quote">--</div>
+    <div class="notice" data-i18n="overtime">⏱ 時間超過は1時間ごとに10,000 VNDで自動延長。深夜・休日の追加料金はありません。基本補償込み(1荷物あたり最大5,000,000 VND)。</div>
+    <button class="btn" id="toPayBtn" disabled onclick="goPay()" data-i18n="toPay">決済へ進む</button>
+    <button class="btn ghost" onclick="backTo(1)" data-i18n="back">戻る</button>
+  </div>
+
+  <div class="card hidden" id="uStep3">
+    <h2 data-i18n="payment">💳 予約・決済</h2>
+    <label data-i18n="email">メールアドレス</label>
+    <input type="email" id="uEmail" placeholder="you@example.com">
+    <label data-i18n="payMethod">決済方法</label>
+    <div class="pay" id="payGrid"></div>
+    <div style="margin-top:14px" class="split" id="paySummary"></div>
+    <label style="margin-top:10px"><input type="checkbox" id="agree"> <span data-i18n="agree">補償内容・免責事項に同意する</span></label>
+    <button class="btn orange" onclick="doPay()" data-i18n="payNow">決済して予約を確定(デモ)</button>
+    <button class="btn ghost" onclick="backTo(2)" data-i18n="back">戻る</button>
+  </div>
+
+  <div class="card hidden" id="uStep4">
+    <h2 data-i18n="done">✅ 予約が確定しました</h2>
+    <p style="font-size:13px;color:var(--muted)" data-i18n="showQr">店舗でこのQRコードとOTPを提示してください。</p>
+    <div class="qrbox">
+      <div id="qrcode"></div>
+      <div class="otp" id="otpShow"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px" id="bkId"></div>
+    </div>
+    <div class="split" id="bkSummary"></div>
+    <button class="btn green" onclick="backTo(1);renderMyBookings()" data-i18n="newBk">新しい予約を作る</button>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="myBk">📋 マイ予約</h2>
+    <div id="myBookings" style="font-size:13px;color:var(--muted)"></div>
+  </div>
+</section>
+
+<!-- ================= STORE ================= -->
+<section id="view-store" class="hidden">
+  <div class="card">
+    <h2 data-i18n="storeHead">🏪 店舗オペレーション(簡単3ステップ)</h2>
+    <p style="font-size:13px;color:var(--muted)" data-i18n="storeDesc">QR読取の代わりに予約番号+OTPを入力してください(デモ)。</p>
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label data-i18n="bkNo">予約番号</label>
+        <input type="text" id="sBk" placeholder="KC-0001">
+      </div>
+      <div>
+        <label>OTP</label>
+        <input type="text" id="sOtp" placeholder="123456" maxlength="6">
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn" onclick="storeCheckin()" data-i18n="acceptBtn">① 預かる(QR+OTP確認)</button>
+      <button class="btn green" onclick="storeReturn()" data-i18n="returnBtn">③ 返す(QR+OTP確認)</button>
+    </div>
+    <div id="tagArea" class="hidden">
+      <label data-i18n="tagNo">荷物タグ番号を装着して入力</label>
+      <input type="text" id="sTag" placeholder="TAG-A01">
+      <button class="btn orange" onclick="attachTag()" data-i18n="startStore">② 保管開始(バックヤードへ)</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2 data-i18n="storing">📦 保管中の荷物一覧</h2>
+    <table>
+      <thead><tr><th data-i18n="thBk">予約</th><th data-i18n="thStore">店舗</th><th data-i18n="thTag">タグ</th><th data-i18n="thSize">サイズ</th><th data-i18n="thUntil">返却期限</th><th data-i18n="thStatus">状態</th></tr></thead>
+      <tbody id="storeTable"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= ADMIN ================= -->
+<section id="view-admin" class="hidden">
+  <div class="kpi">
+    <div class="card"><div class="num" id="kBk">0</div><div class="lbl" data-i18n="kBk">総予約数</div></div>
+    <div class="card"><div class="num" id="kAct">0</div><div class="lbl" data-i18n="kAct">保管中</div></div>
+    <div class="card"><div class="num" id="kRev">0</div><div class="lbl" data-i18n="kRev">総売上 (VND)</div></div>
+    <div class="card"><div class="num" id="kDone">0</div><div class="lbl" data-i18n="kDone">返却完了</div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h2 data-i18n="settle">💰 収益・精算モデル(自動計算)</h2>
+    <div class="split" id="settleBox"></div>
+  </div>
+  <div class="card">
+    <h2 data-i18n="allBk">🗂 全予約一覧</h2>
+    <table>
+      <thead><tr><th data-i18n="thBk">予約</th><th data-i18n="thStore">店舗</th><th data-i18n="thPlanCol">プラン</th><th data-i18n="thAmt">金額</th><th data-i18n="thStatus">状態</th></tr></thead>
+      <tbody id="adminTable"></tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- i18n ----------
+const I18N = {
+ ja:{tabUser:"利用者",tabStore:"店舗",tabAdmin:"管理",st1:"① 店舗",st2:"② プラン",st3:"③ 決済",st4:"④ QR/OTP",
+  findStore:"🗺️ 預け先の店舗を探す",selPlan:"🧳 サイズと時間を選ぶ",size:"サイズ",plan:"時間プラン",bags:"個数",
+  overtime:"⏱ 時間超過は1時間ごとに10,000 VNDで自動延長。深夜・休日の追加料金はありません。基本補償込み(1荷物あたり最大5,000,000 VND)。",
+  toPay:"決済へ進む",back:"戻る",payment:"💳 予約・決済",email:"メールアドレス",payMethod:"決済方法",
+  agree:"補償内容・免責事項に同意する",payNow:"決済して予約を確定(デモ)",done:"✅ 予約が確定しました",
+  showQr:"店舗でこのQRコードとOTPを提示してください。",newBk:"新しい予約を作る",myBk:"📋 マイ予約",
+  storeHead:"🏪 店舗オペレーション(簡単3ステップ)",storeDesc:"QR読取の代わりに予約番号+OTPを入力してください(デモ)。",
+  bkNo:"予約番号",acceptBtn:"① 預かる(QR+OTP確認)",returnBtn:"③ 返す(QR+OTP確認)",tagNo:"荷物タグ番号を装着して入力",
+  startStore:"② 保管開始(バックヤードへ)",storing:"📦 保管中の荷物一覧",
+  thBk:"予約",thStore:"店舗",thTag:"タグ",thSize:"サイズ",thUntil:"返却期限",thStatus:"状態",thPlanCol:"プラン",thAmt:"金額",
+  kBk:"総予約数",kAct:"保管中",kRev:"総売上 (VND)",kDone:"返却完了",settle:"💰 収益・精算モデル(自動計算)",allBk:"🗂 全予約一覧",
+  sPaid:"決済済(未預入)",sStored:"保管中",sDone:"返却完了",none:"予約はまだありません。",
+  tSized:{S:"Sサイズ",M:"Mサイズ",L:"Lサイズ"},
+  msgPaid:"決済完了!QRとOTPを発行しました",msgOtpNg:"OTPまたは予約番号が一致しません",msgTag:"タグを登録し保管を開始しました",
+  msgRet:"返却が完了しました",msgNeedTag:"OTP確認OK。タグ番号を入力してください",msgAgree:"補償への同意が必要です",msgEmail:"メールアドレスを入力してください",
+  msgNotStored:"この予約は保管中ではありません",msgAlready:"この予約は既に預け入れ済みです",
+  splitUser:"利用者料金",splitStore:"コンビニへの支払い(40%)",splitPay:"決済手数料(約3%)",splitIns:"保険料(約6%)",splitSys:"システム・運営費等",splitNet:"KONCOCHII側の残り(目安)",
+  sumStore:"店舗",sumPlan:"プラン",sumBags:"個数",sumTotal:"合計(税抜)"},
+ en:{tabUser:"Traveler",tabStore:"Store",tabAdmin:"Admin",st1:"① Store",st2:"② Plan",st3:"③ Pay",st4:"④ QR/OTP",
+  findStore:"🗺️ Find a storage location",selPlan:"🧳 Choose size & duration",size:"Size",plan:"Duration",bags:"Bags",
+  overtime:"⏱ Overtime auto-extends at 10,000 VND/hour. No night/holiday fees. Basic insurance included (up to 5,000,000 VND per bag).",
+  toPay:"Continue to payment",back:"Back",payment:"💳 Book & Pay",email:"Email address",payMethod:"Payment method",
+  agree:"I agree to the coverage terms & disclaimers",payNow:"Pay & confirm booking (demo)",done:"✅ Booking confirmed",
+  showQr:"Show this QR code and OTP at the store.",newBk:"Make a new booking",myBk:"📋 My bookings",
+  storeHead:"🏪 Store operation (3 easy steps)",storeDesc:"Enter booking No. + OTP instead of scanning QR (demo).",
+  bkNo:"Booking No.",acceptBtn:"① Accept (verify QR+OTP)",returnBtn:"③ Return (verify QR+OTP)",tagNo:"Attach luggage tag & enter its number",
+  startStore:"② Start storage (backyard)",storing:"📦 Bags in storage",
+  thBk:"Booking",thStore:"Store",thTag:"Tag",thSize:"Size",thUntil:"Return by",thStatus:"Status",thPlanCol:"Plan",thAmt:"Amount",
+  kBk:"Total bookings",kAct:"In storage",kRev:"Revenue (VND)",kDone:"Returned",settle:"💰 Revenue split (auto)",allBk:"🗂 All bookings",
+  sPaid:"Paid (not dropped)",sStored:"In storage",sDone:"Returned",none:"No bookings yet.",
+  tSized:{S:"Size S",M:"Size M",L:"Size L"},
+  msgPaid:"Payment complete! QR & OTP issued",msgOtpNg:"Booking No. or OTP does not match",msgTag:"Tag registered — storage started",
+  msgRet:"Return completed",msgNeedTag:"OTP verified. Enter the tag number",msgAgree:"Please agree to the coverage terms",msgEmail:"Please enter your email",
+  msgNotStored:"This booking is not in storage",msgAlready:"This booking is already checked in",
+  splitUser:"Customer payment",splitStore:"Store commission (40%)",splitPay:"Payment fee (~3%)",splitIns:"Insurance (~6%)",splitSys:"System & operations",splitNet:"KONCOCHII net (est.)",
+  sumStore:"Store",sumPlan:"Plan",sumBags:"Bags",sumTotal:"Total (excl. tax)"},
+ vi:{tabUser:"Khách",tabStore:"Cửa hàng",tabAdmin:"Quản trị",st1:"① Cửa hàng",st2:"② Gói",st3:"③ Thanh toán",st4:"④ QR/OTP",
+  findStore:"🗺️ Tìm điểm gửi hành lý",selPlan:"🧳 Chọn kích cỡ & thời gian",size:"Kích cỡ",plan:"Thời gian",bags:"Số kiện",
+  overtime:"⏱ Quá giờ tự động gia hạn 10.000 VND/giờ. Không phụ phí đêm/lễ. Đã bao gồm bảo hiểm cơ bản (tối đa 5.000.000 VND/kiện).",
+  toPay:"Tiếp tục thanh toán",back:"Quay lại",payment:"💳 Đặt chỗ & Thanh toán",email:"Email",payMethod:"Phương thức thanh toán",
+  agree:"Tôi đồng ý điều khoản bảo hiểm & miễn trừ",payNow:"Thanh toán & xác nhận (demo)",done:"✅ Đặt chỗ thành công",
+  showQr:"Xuất trình QR và OTP tại cửa hàng.",newBk:"Đặt chỗ mới",myBk:"📋 Đặt chỗ của tôi",
+  storeHead:"🏪 Thao tác cửa hàng (3 bước)",storeDesc:"Nhập mã đặt chỗ + OTP thay cho quét QR (demo).",
+  bkNo:"Mã đặt chỗ",acceptBtn:"① Nhận gửi (QR+OTP)",returnBtn:"③ Trả (QR+OTP)",tagNo:"Gắn thẻ hành lý & nhập số thẻ",
+  startStore:"② Bắt đầu lưu giữ",storing:"📦 Hành lý đang lưu giữ",
+  thBk:"Mã",thStore:"Cửa hàng",thTag:"Thẻ",thSize:"Cỡ",thUntil:"Hạn trả",thStatus:"Trạng thái",thPlanCol:"Gói",thAmt:"Số tiền",
+  kBk:"Tổng đặt chỗ",kAct:"Đang lưu giữ",kRev:"Doanh thu (VND)",kDone:"Đã trả",settle:"💰 Phân chia doanh thu",allBk:"🗂 Tất cả đặt chỗ",
+  sPaid:"Đã thanh toán",sStored:"Đang lưu giữ",sDone:"Đã trả",none:"Chưa có đặt chỗ.",
+  tSized:{S:"Cỡ S",M:"Cỡ M",L:"Cỡ L"},
+  msgPaid:"Thanh toán xong! Đã cấp QR & OTP",msgOtpNg:"Mã hoặc OTP không đúng",msgTag:"Đã gắn thẻ — bắt đầu lưu giữ",
+  msgRet:"Đã trả hành lý",msgNeedTag:"OTP đúng. Nhập số thẻ",msgAgree:"Vui lòng đồng ý điều khoản",msgEmail:"Vui lòng nhập email",
+  msgNotStored:"Đặt chỗ này không ở trạng thái lưu giữ",msgAlready:"Đặt chỗ này đã nhận gửi",
+  splitUser:"Khách thanh toán",splitStore:"Hoa hồng cửa hàng (40%)",splitPay:"Phí thanh toán (~3%)",splitIns:"Bảo hiểm (~6%)",splitSys:"Hệ thống & vận hành",splitNet:"KONCOCHII còn lại (ước)",
+  sumStore:"Cửa hàng",sumPlan:"Gói",sumBags:"Số kiện",sumTotal:"Tổng (chưa thuế)"},
+ ko:{tabUser:"이용자",tabStore:"매장",tabAdmin:"관리",st1:"① 매장",st2:"② 플랜",st3:"③ 결제",st4:"④ QR/OTP",
+  findStore:"🗺️ 보관 매장 찾기",selPlan:"🧳 크기와 시간 선택",size:"크기",plan:"시간 플랜",bags:"수량",
+  overtime:"⏱ 초과 시 시간당 10,000 VND 자동 연장. 심야/휴일 추가요금 없음. 기본 보상 포함(짐 1개당 최대 5,000,000 VND).",
+  toPay:"결제로 진행",back:"뒤로",payment:"💳 예약·결제",email:"이메일",payMethod:"결제 수단",
+  agree:"보상 내용·면책사항에 동의합니다",payNow:"결제하고 예약 확정(데모)",done:"✅ 예약 확정",
+  showQr:"매장에서 QR코드와 OTP를 제시하세요.",newBk:"새 예약 만들기",myBk:"📋 내 예약",
+  storeHead:"🏪 매장 운영(간단 3단계)",storeDesc:"QR 스캔 대신 예약번호+OTP를 입력하세요(데모).",
+  bkNo:"예약번호",acceptBtn:"① 접수(QR+OTP 확인)",returnBtn:"③ 반환(QR+OTP 확인)",tagNo:"짐 태그 부착 후 번호 입력",
+  startStore:"② 보관 시작",storing:"📦 보관 중인 짐",
+  thBk:"예약",thStore:"매장",thTag:"태그",thSize:"크기",thUntil:"반환 기한",thStatus:"상태",thPlanCol:"플랜",thAmt:"금액",
+  kBk:"총 예약",kAct:"보관 중",kRev:"매출 (VND)",kDone:"반환 완료",settle:"💰 수익 배분(자동)",allBk:"🗂 전체 예약",
+  sPaid:"결제됨",sStored:"보관 중",sDone:"반환 완료",none:"예약이 없습니다.",
+  tSized:{S:"S사이즈",M:"M사이즈",L:"L사이즈"},
+  msgPaid:"결제 완료! QR·OTP 발급",msgOtpNg:"예약번호 또는 OTP 불일치",msgTag:"태그 등록 — 보관 시작",
+  msgRet:"반환 완료",msgNeedTag:"OTP 확인됨. 태그 번호 입력",msgAgree:"보상 동의가 필요합니다",msgEmail:"이메일을 입력하세요",
+  msgNotStored:"보관 중인 예약이 아닙니다",msgAlready:"이미 접수된 예약입니다",
+  splitUser:"이용자 결제액",splitStore:"매장 수수료(40%)",splitPay:"결제 수수료(~3%)",splitIns:"보험료(~6%)",splitSys:"시스템·운영비",splitNet:"KONCOCHII 순수익(추정)",
+  sumStore:"매장",sumPlan:"플랜",sumBags:"수량",sumTotal:"합계(세전)"},
+ zh:{tabUser:"用户",tabStore:"门店",tabAdmin:"管理",st1:"① 门店",st2:"② 方案",st3:"③ 支付",st4:"④ QR/OTP",
+  findStore:"🗺️ 查找寄存门店",selPlan:"🧳 选择尺寸和时长",size:"尺寸",plan:"时长方案",bags:"件数",
+  overtime:"⏱ 超时按每小时10,000 VND自动延长。无夜间/节假日附加费。含基础保障(每件最高5,000,000 VND)。",
+  toPay:"前往支付",back:"返回",payment:"💳 预订与支付",email:"电子邮箱",payMethod:"支付方式",
+  agree:"我同意保障条款及免责声明",payNow:"支付并确认预订(演示)",done:"✅ 预订成功",
+  showQr:"请在门店出示此二维码和OTP。",newBk:"新建预订",myBk:"📋 我的预订",
+  storeHead:"🏪 门店操作(简单3步)",storeDesc:"演示模式:请输入预订号+OTP代替扫码。",
+  bkNo:"预订号",acceptBtn:"① 收存(核验QR+OTP)",returnBtn:"③ 归还(核验QR+OTP)",tagNo:"挂上行李牌并输入编号",
+  startStore:"② 开始寄存",storing:"📦 寄存中的行李",
+  thBk:"预订",thStore:"门店",thTag:"行李牌",thSize:"尺寸",thUntil:"归还期限",thStatus:"状态",thPlanCol:"方案",thAmt:"金额",
+  kBk:"总预订数",kAct:"寄存中",kRev:"营业额 (VND)",kDone:"已归还",settle:"💰 收益分成(自动)",allBk:"🗂 全部预订",
+  sPaid:"已支付",sStored:"寄存中",sDone:"已归还",none:"暂无预订。",
+  tSized:{S:"S号",M:"M号",L:"L号"},
+  msgPaid:"支付完成!已生成QR和OTP",msgOtpNg:"预订号或OTP不匹配",msgTag:"行李牌已登记——开始寄存",
+  msgRet:"归还完成",msgNeedTag:"OTP验证通过。请输入行李牌编号",msgAgree:"请先同意保障条款",msgEmail:"请输入邮箱",
+  msgNotStored:"该预订不在寄存中",msgAlready:"该预订已收存",
+  splitUser:"用户支付",splitStore:"门店分成(40%)",splitPay:"支付手续费(~3%)",splitIns:"保险费(~6%)",splitSys:"系统运营费",splitNet:"KONCOCHII净收(估)",
+  sumStore:"门店",sumPlan:"方案",sumBags:"件数",sumTotal:"合计(不含税)"}
+};
+let lang="ja";
+function t(k){return I18N[lang][k]??I18N.ja[k]??k}
+function setLang(l){lang=l;document.querySelectorAll("[data-i18n]").forEach(el=>{el.textContent=t(el.dataset.i18n)});renderAll();}
+
+// ---------- data ----------
+const STORES=[
+ {id:"BT",name:"Circle Mart ベンタイン市場前 / Ben Thanh",area:"Ben Thanh Market",cap:10},
+ {id:"BV",name:"Mini Stop ブイビエン通り / Bui Vien",area:"Bui Vien Walking St.",cap:8},
+ {id:"AP",name:"GS Mart 空港アクセス / Tan Son Nhat",area:"Tan Son Nhat Airport",cap:12}
+];
+const PRICES={S:{3:50000,6:70000,12:100000},M:{3:70000,6:100000,12:150000},L:{3:100000,6:150000,12:200000}};
+const PAYS=["Visa / Mastercard","Apple Pay","Google Pay","VietQR","MoMo"];
+const bookings=[]; let seq=1;
+let sel={store:null,size:null,plan:null,pay:null};
+let pendingCheckin=null;
+
+const fmt=n=>n.toLocaleString("en-US");
+function toast(m){const el=document.getElementById("toast");el.textContent=m;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2200);}
+
+// ---------- tabs ----------
+function showTab(x){["user","store","admin"].forEach(v=>{
+  document.getElementById("view-"+v).classList.toggle("hidden",v!==x);
+  document.getElementById("tab-"+v).classList.toggle("active",v===x);});renderAll();}
+
+// ---------- user flow ----------
+function renderStores(){
+  document.getElementById("storeList").innerHTML=STORES.map(s=>{
+    const used=bookings.filter(b=>b.storeId===s.id&&b.status==="stored").length;
+    return `<div class="store ${sel.store===s.id?'sel':''}" onclick="pickStore('${s.id}')">
+      <div><b>${s.name}</b><small>📍 ${s.area} ・ 24h</small></div>
+      <span class="badge ${used<s.cap?'green':'red'}">${used}/${s.cap}</span></div>`;}).join("");
+}
+function pickStore(id){sel.store=id;step(2);}
+function renderPlanPickers(){
+  document.getElementById("sizeGrid").innerHTML=["S","M","L"].map(s=>
+    `<div class="opt ${sel.size===s?'sel':''}" onclick="sel.size='${s}';renderPlanPickers();quote()">${t('tSized')[s]}<small>${s==="S"?"~20kg":s==="M"?"20–30kg":"29in+ / 30kg"}</small></div>`).join("");
+  document.getElementById("planGrid").innerHTML=[3,6,12].map(h=>
+    `<div class="opt ${sel.plan===h?'sel':''}" onclick="sel.plan=${h};renderPlanPickers();quote()">${h}H<small>${sel.size?fmt(PRICES[sel.size][h])+" VND":""}</small></div>`).join("");
+}
+function quote(){
+  const n=+document.getElementById("bagCount").value;
+  if(sel.size&&sel.plan){const p=PRICES[sel.size][sel.plan]*n;
+    document.getElementById("quote").innerHTML=fmt(p)+` VND <small>/ ${n} bag(s)</small>`;
+    document.getElementById("toPayBtn").disabled=false;}
+}
+document.addEventListener("change",e=>{if(e.target.id==="bagCount")quote();});
+function goPay(){
+  step(3);
+  document.getElementById("payGrid").innerHTML=PAYS.map((p,i)=>
+    `<div class="${sel.pay===i?'sel':''}" onclick="sel.pay=${i};goPay()">${p}</div>`).join("");
+  const n=+document.getElementById("bagCount").value;
+  const total=PRICES[sel.size][sel.plan]*n;
+  const st=STORES.find(s=>s.id===sel.store);
+  document.getElementById("paySummary").innerHTML=
+    `<div><span>${t('sumStore')}</span><span>${st.area}</span></div>
+     <div><span>${t('sumPlan')}</span><span>${t('tSized')[sel.size]} × ${sel.plan}H</span></div>
+     <div><span>${t('sumBags')}</span><span>${n}</span></div>
+     <div><span>${t('sumTotal')}</span><span>${fmt(total)} VND</span></div>`;
+}
+function doPay(){
+  if(!document.getElementById("uEmail").value){toast(t('msgEmail'));return;}
+  if(!document.getElementById("agree").checked){toast(t('msgAgree'));return;}
+  if(sel.pay===null){sel.pay=0;}
+  const n=+document.getElementById("bagCount").value;
+  const bk={id:"KC-"+String(seq++).padStart(4,"0"),storeId:sel.store,size:sel.size,plan:sel.plan,bags:n,
+    amount:PRICES[sel.size][sel.plan]*n,otp:String(Math.floor(100000+Math.random()*900000)),
+    email:document.getElementById("uEmail").value,pay:PAYS[sel.pay],status:"paid",tag:null,
+    until:new Date(Date.now()+sel.plan*3600e3)};
+  bookings.push(bk);
+  step(4);
+  document.getElementById("qrcode").innerHTML="";
+  new QRCode(document.getElementById("qrcode"),{text:"KONCOCHII|"+bk.id+"|"+bk.otp,width:150,height:150,colorDark:"#1F3864"});
+  document.getElementById("otpShow").textContent=bk.otp;
+  document.getElementById("bkId").textContent=bk.id;
+  const st=STORES.find(s=>s.id===bk.storeId);
+  document.getElementById("bkSummary").innerHTML=
+    `<div><span>${t('sumStore')}</span><span>${st.area}</span></div>
+     <div><span>${t('sumPlan')}</span><span>${t('tSized')[bk.size]} × ${bk.plan}H × ${bk.bags}</span></div>
+     <div><span>${t('thUntil')}</span><span>${bk.until.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div>
+     <div><span>${t('sumTotal')}</span><span>${fmt(bk.amount)} VND (${bk.pay})</span></div>`;
+  toast(t('msgPaid')); renderAll();
+}
+function step(n){
+  [1,2,3,4].forEach(i=>document.getElementById("uStep"+i).classList.toggle("hidden",i!==n));
+  document.querySelectorAll("#uSteps div").forEach((d,i)=>d.classList.toggle("on",i===n-1));
+  if(n===2)renderPlanPickers();
+}
+function backTo(n){if(n===1){sel={store:null,size:null,plan:null,pay:null};renderStores();}step(n);}
+function statusBadge(s){return s==="paid"?`<span class="badge orange">${t('sPaid')}</span>`
+  :s==="stored"?`<span class="badge green">${t('sStored')}</span>`:`<span class="badge">${t('sDone')}</span>`;}
+function renderMyBookings(){
+  const el=document.getElementById("myBookings");
+  if(!bookings.length){el.textContent=t('none');return;}
+  el.innerHTML=bookings.map(b=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line)">
+    <span><b>${b.id}</b> ・ ${t('tSized')[b.size]}×${b.plan}H ・ OTP:<b>${b.otp}</b></span>${statusBadge(b.status)}</div>`).join("");
+}
+
+// ---------- store ops ----------
+function findBk(){const id=document.getElementById("sBk").value.trim().toUpperCase();
+  const otp=document.getElementById("sOtp").value.trim();
+  return bookings.find(b=>b.id===id&&b.otp===otp);}
+function storeCheckin(){
+  const b=findBk();
+  if(!b){toast(t('msgOtpNg'));return;}
+  if(b.status!=="paid"){toast(t('msgAlready'));return;}
+  pendingCheckin=b; document.getElementById("tagArea").classList.remove("hidden");
+  toast(t('msgNeedTag'));
+}
+function attachTag(){
+  const tag=document.getElementById("sTag").value.trim();
+  if(!pendingCheckin||!tag)return;
+  pendingCheckin.tag=tag; pendingCheckin.status="stored";
+  pendingCheckin.until=new Date(Date.now()+pendingCheckin.plan*3600e3);
+  pendingCheckin=null;
+  document.getElementById("tagArea").classList.add("hidden");
+  document.getElementById("sTag").value="";
+  toast(t('msgTag')); renderAll();
+}
+function storeReturn(){
+  const b=findBk();
+  if(!b){toast(t('msgOtpNg'));return;}
+  if(b.status!=="stored"){toast(t('msgNotStored'));return;}
+  b.status="done"; toast(t('msgRet')); renderAll();
+}
+function renderStoreTable(){
+  const rows=bookings.filter(b=>b.status==="stored");
+  document.getElementById("storeTable").innerHTML=rows.length?rows.map(b=>{
+    const st=STORES.find(s=>s.id===b.storeId);
+    const over=new Date()>b.until;
+    return `<tr><td><b>${b.id}</b></td><td>${st.area}</td><td>${b.tag}</td><td>${b.size}×${b.bags}</td>
+      <td>${b.until.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}${over?' <span class="badge red">+10k/h</span>':''}</td>
+      <td>${statusBadge(b.status)}</td></tr>`;}).join("")
+    :`<tr><td colspan="6" style="color:var(--muted)">${t('none')}</td></tr>`;
+}
+
+// ---------- admin ----------
+function renderAdmin(){
+  const rev=bookings.reduce((a,b)=>a+b.amount,0);
+  document.getElementById("kBk").textContent=bookings.length;
+  document.getElementById("kAct").textContent=bookings.filter(b=>b.status==="stored").length;
+  document.getElementById("kRev").textContent=fmt(rev);
+  document.getElementById("kDone").textContent=bookings.filter(b=>b.status==="done").length;
+  const store=Math.round(rev*.4),fee=Math.round(rev*.03),ins=Math.round(rev*.06),sys=Math.round(rev*.05);
+  document.getElementById("settleBox").innerHTML=
+    `<div><span>${t('splitUser')}</span><span>${fmt(rev)} VND</span></div>
+     <div><span>${t('splitStore')}</span><span>▲ ${fmt(store)} VND</span></div>
+     <div><span>${t('splitPay')}</span><span>▲ ${fmt(fee)} VND</span></div>
+     <div><span>${t('splitIns')}</span><span>▲ ${fmt(ins)} VND</span></div>
+     <div><span>${t('splitSys')}</span><span>▲ ${fmt(sys)} VND</span></div>
+     <div><span>${t('splitNet')}</span><span>${fmt(rev-store-fee-ins-sys)} VND</span></div>`;
+  document.getElementById("adminTable").innerHTML=bookings.length?bookings.map(b=>{
+    const st=STORES.find(s=>s.id===b.storeId);
+    return `<tr><td><b>${b.id}</b></td><td>${st.area}</td><td>${b.size}×${b.plan}H×${b.bags}</td><td>${fmt(b.amount)}</td><td>${statusBadge(b.status)}</td></tr>`;}).join("")
+    :`<tr><td colspan="5" style="color:var(--muted)">${t('none')}</td></tr>`;
+}
+function renderAll(){renderStores();renderMyBookings();renderStoreTable();renderAdmin();}
+renderAll();
+</script>
+</body>
+</html>

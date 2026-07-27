@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KONCOCHII 資料ポータル</title>
+<style>
+:root{--navy:#1F3864;--navy2:#2b4a86;--accent:#e8850c;--green:#1a9e5c;--bg:#f4f6fa;--card:#fff;--line:#dde3ee;--text:#232a3a;--muted:#697089}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Hiragino Sans','Yu Gothic',sans-serif;line-height:1.8}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:40px 24px;text-align:center}
+header .k{font-size:13px;letter-spacing:3px;opacity:.85}
+header h1{font-size:30px;margin:8px 0}
+header p{opacity:.9;font-size:15px}
+main{max-width:820px;margin:0 auto;padding:26px 24px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin-bottom:20px;font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+a.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;text-decoration:none;color:var(--text);transition:.15s}
+a.card:hover{border-color:var(--navy);box-shadow:0 4px 14px rgba(31,56,100,.1);transform:translateY(-2px)}
+a.card .ico{font-size:34px}
+a.card .step{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:1px;margin-top:8px}
+a.card h2{color:var(--navy);font-size:19px;margin:4px 0 6px}
+a.card p{color:var(--muted);font-size:14px;margin:0}
+a.card .go{margin-top:12px;color:var(--navy);font-weight:700;font-size:14px}
+.rec{display:inline-block;background:#fdeeda;color:var(--accent);font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;margin-left:6px}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:24px}
+</style>
+</head>
+<body>
+<header>
+  <div class="k">KONCOCHII — LUGGAGE STORAGE</div>
+  <h1>🧳 資料ポータル</h1>
+  <p>荷物預かりサービス（PoC）— まずは「はじめにお読みください」から</p>
+</header>
+<main>
+  <div class="intro">はじめての方は上から順にご覧ください。①で全体像をつかみ、②を見ながら③の試作品を実際にさわると、一気に分かります。④は開業までに人が進める準備の一覧です。</div>
+  <div class="grid">
+    <a class="card" href="KONCOCHII_はじめにお読みください.html">
+      <div class="ico">📖</div>
+      <div class="step">STEP 1 ・ まず読む</div>
+      <h2>はじめにお読みください<span class="rec">最初に</span></h2>
+      <p>このサービスは何か、あなたは何をするのかを、やさしく説明します。</p>
+      <div class="go">開く →</div>
+    </a>
+    <a class="card" href="KONCOCHII_テスト確認ガイド.html">
+      <div class="ico">🧭</div>
+      <div class="step">STEP 2 ・ 確認の手引き</div>
+      <h2>テスト確認ガイド</h2>
+      <p>試作品で何を確認すればよいか。チェック項目つき。</p>
+      <div class="go">開く →</div>
+    </a>
+    <a class="card" href="KONCOCHII_prototype.html">
+      <div class="ico">🧳</div>
+      <div class="step">STEP 3 ・ さわる</div>
+      <h2>プロトタイプ（試作品）</h2>
+      <p>実際に予約→預かる→返すを操作できる、動くデモ。</p>
+      <div class="go">開く →</div>
+    </a>
+    <a class="card" href="KONCOCHII_人間タスク管理.html">
+      <div class="ico">✅</div>
+      <div class="step">STEP 4 ・ 準備を進める</div>
+      <h2>人間がやること（準備タスク）</h2>
+      <p>契約・実装・運用など、開業までに人が進める作業の一覧。</p>
+      <div class="go">開く →</div>
+    </a>
+  </div>
+</main>
+<footer>KONCOCHII — Japan Quality, Vietnam Solution</footer>
+</body>
+</html>
