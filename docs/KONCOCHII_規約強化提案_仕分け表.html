@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KONCOCHII 規約強化提案 仕分け表</title>
+<style>
+:root{--navy:#1F3864;--navy2:#2b4a86;--accent:#e8850c;--green:#1a9e5c;--red:#c0392b;--amber:#c47f0a;--bg:#f4f6fa;--card:#fff;--line:#dde3ee;--text:#232a3a;--muted:#697089}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Hiragino Sans','Yu Gothic',sans-serif;line-height:1.8}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:34px 24px;text-align:center}
+header .k{font-size:13px;letter-spacing:3px;opacity:.85}
+header h1{font-size:25px;margin:8px 0}
+header p{opacity:.9;font-size:14px}
+main{max-width:1080px;margin:0 auto;padding:24px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-bottom:18px}
+h2{color:var(--navy);font-size:19px;margin-bottom:12px;border-left:5px solid var(--accent);padding-left:10px}
+h3{color:var(--navy2);font-size:15px;margin:14px 0 6px}
+p{font-size:14px;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#eef2f9;color:var(--navy)}
+.b{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:9px;white-space:nowrap}
+.adopt{background:#e2f5ea;color:var(--green)}
+.cond{background:#fdeeda;color:var(--amber)}
+.drop{background:#fdeaea;color:var(--red)}
+.c-reg{background:#e8eefb;color:var(--navy2)}
+.c-man{background:#eafaf3;color:var(--green)}
+.c-law{background:#f3e8fb;color:#7d3ca8}
+.note{background:#f6f8fc;border-left:4px solid var(--navy2);padding:10px 14px;font-size:13px;color:var(--muted);border-radius:0 8px 8px 0;margin:10px 0}
+.big{font-weight:700;color:var(--navy)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:22px}
+.legend span{margin-right:14px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="k">KONCOCHII — TERMS REINFORCEMENT</div>
+  <h1>📑 規約強化提案 仕分け表</h1>
+  <p>提案書「荷物預かりサービス 規約強化 提案書」の各項目を仕分け ／ 2026-07-28</p>
+</header>
+<main>
+
+<section>
+<h2>読み方</h2>
+<p class="legend">
+<span class="b c-reg">規約</span>客向け利用規約に載せる法的文面
+<span class="b c-man">マニュアル</span>スタッフ運用・研修（客には見せない）
+<span class="b c-law">弁護士</span>現地弁護士の確認が必要
+</p>
+<p class="legend">
+<span class="b adopt">採用</span>そのまま取り入れる
+<span class="b cond">条件付</span>既存仕様に合わせて修正のうえ採用
+<span class="b drop">不採用</span>衝突・過剰・時期尚早
+</p>
+<p class="note">原則: <span class="big">良い点は取り入れ、既存の確定仕様と衝突する数値・方針はやめる。</span>提案は「規約に4章追加」の形だが、そのまま足すと矛盾するため、規約／マニュアル／弁護士確認の3つに仕分け直した。補償額・放置日数など<span class="big">既に確定した数値は既存仕様を正</span>とする。</p>
+</section>
+
+<section>
+<h2>1. 補償・免責（提案 第1章）</h2>
+<table>
+<tr><th>提案項目</th><th>分類</th><th>採否</th><th>既存仕様との関係・推奨対応</th></tr>
+<tr><td>補償上限 1荷物 <b>300USD</b></td><td><span class="b c-reg">規約</span><span class="b c-law">弁護士</span></td><td><span class="b drop">不採用</span></td><td><span class="big">既存が正</span>：基本補償=1荷物<b>500万VND</b>(≈200USD)・1予約1,000万VND(00補償/fee_settings)。300USDに変えると規約・予約画面・DBの3か所が矛盾。単位もVNDに統一。金額の最終確定は保険会社審査後（弁護士確認）</td></tr>
+<tr><td>補償対象外品目：現金/パスポート/宝石/PC/スマホ/ブランド品/データ/HDD/SSD/USB</td><td><span class="b c-reg">規約</span></td><td><span class="b cond">条件付</span></td><td>方向は妥当。ただし既存の<span class="big">「禁止物（そもそも預けられない）」と「補償対象外（預けられるが補償しない）」を区別</span>して統合が必要（下の第2章で整理）。現金・パスポート・貴重品は既存で<b>禁止物＝受入拒否</b>側。データ/PC等は「補償対象外」側で採用</td></tr>
+<tr><td>立証責任は利用者側にある</td><td><span class="b c-reg">規約</span><span class="b c-law">弁護士</span></td><td><span class="b drop">不採用</span></td><td>ベトナム消費者保護法下で一方的免責は<span class="big">無効化されうる</span>。そのまま条文化しない。弁護士に「どこまで免責が有効か」を確認してから文面化</td></tr>
+</table>
+</section>
+
+<section>
+<h2>2. 危険物・犯罪対策（提案 第2章）</h2>
+<table>
+<tr><th>提案項目</th><th>分類</th><th>採否</th><th>既存仕様との関係・推奨対応</th></tr>
+<tr><td>利用禁止品目の詳細化（火災系/化学・薬物系/生物・食品系の一覧）</td><td><span class="b c-reg">規約</span></td><td><span class="b adopt">採用</span></td><td>既存の禁止物は「現金/貴重品/危険物/生もの」と粗い。この<span class="big">3分類の具体リストで置き換え・詳細化</span>。予約画面のチェックボックス文言と禁止物ワークシートに反映（未決論点「禁止物チェックの明示化」の回答）</td></tr>
+<tr><td>開披（開封）権限：煙・異臭・液漏れ・薬物疑い時に責任者立会いで開封可</td><td><span class="b c-reg">規約</span><span class="b c-man">マニュアル</span></td><td><span class="b adopt">採用</span></td><td><span class="big">鋭い指摘・採用</span>。既存の「絶対に開けない」前提は緊急時に危険。規約に開披条件を明記＋マニュアルに手順化。audit_logsに開披記録</td></tr>
+<tr><td>犯罪対策：違法物・盗品・薬物疑い時の保全・警察通報／所有物であることの宣言</td><td><span class="b c-reg">規約</span><span class="b c-man">マニュアル</span></td><td><span class="b adopt">採用</span></td><td>「自己の所有物である宣言」は予約時チェックに1項目追加で対応。通報基準はマニュアルへ</td></tr>
+<tr><td>利用拒否事由：泥酔/暴力/本人確認拒否/危険物所持/虚偽申告</td><td><span class="b c-reg">規約</span></td><td><span class="b adopt">採用</span></td><td>規約に「利用拒否条項」として明記。店舗の受入拒否ボタン運用（04）と接続</td></tr>
+<tr><td>テロ・マネロン等：受付一時停止/通報/証拠保全</td><td><span class="b c-man">マニュアル</span><span class="b c-law">弁護士</span></td><td><span class="b cond">条件付</span></td><td>方針は妥当だがPoC段階では運用マニュアルに留める。法定の通報義務の有無は弁護士確認</td></tr>
+</table>
+</section>
+
+<section>
+<h2>3. 緊急対応（提案 第3章）</h2>
+<table>
+<tr><th>提案項目</th><th>分類</th><th>採否</th><th>既存仕様との関係・推奨対応</th></tr>
+<tr><td>緊急時初動フロー：触れない→報告→隔離→消防→警察</td><td><span class="b c-man">マニュアル</span></td><td><span class="b adopt">採用</span></td><td>規約ではなく<span class="big">スタッフ研修マニュアル</span>へ。前回の未決「スタッフ研修」の中身になる</td></tr>
+<tr><td>労災防止：20kg以上は2名作業</td><td><span class="b c-man">マニュアル</span></td><td><span class="b cond">条件付</span></td><td>労災配慮は妥当だがコンビニ運用（1名オペ前提）と緊張。<span class="big">「Lサイズ/重量物は無理せず2名」の努力目標</span>としてマニュアルへ。規約には載せない（客に無関係）</td></tr>
+</table>
+</section>
+
+<section>
+<h2>4. 個人情報・CCTV（提案 第4章）</h2>
+<table>
+<tr><th>提案項目</th><th>分類</th><th>採否</th><th>既存仕様との関係・推奨対応</th></tr>
+<tr><td>個人情報：保存期間/削除方法/利用目的の明記</td><td><span class="b c-reg">規約</span></td><td><span class="b adopt">採用</span></td><td>既存06に保持期間（写真90日/個人情報1年/監査ログ+1年）が確定済み。<span class="big">その値をプライバシーポリシー文面に反映</span>。PDPD準拠。責任分界（運営が管理・システムが保持）も06に反映済み</td></tr>
+<tr><td>CCTV：受付・保管室・搬入口に設置／24h録画・90日保存</td><td><span class="b c-man">マニュアル</span></td><td><span class="b drop">不採用</span>(PoC)</td><td>90日保存は写真保持と整合的だが、<span class="big">小型コンビニに保管室カメラが無い前提</span>で相乗りモデルと衝突（戦略資料 第7章バックヤード問題と同根）。設置義務は本部交渉・店舗選定の条件へ回す。PoCでは既存店のCCTV有無を確認事項に留める</td></tr>
+</table>
+</section>
+
+<section>
+<h2>5. その他の追加事項（提案 第5章）</h2>
+<table>
+<tr><th>提案項目</th><th>分類</th><th>採否</th><th>既存仕様との関係・推奨対応</th></tr>
+<tr><td>本人確認の厳格化（受付=パスポート等／受取=QR・OTP／代理=委任状）</td><td><span class="b c-reg">規約</span></td><td><span class="b cond">条件付</span></td><td>受取のQR+OTPは既存どおり。<span class="big">受付時のパスポート提示は現状フローに無い</span>（アカウントレスが売り）。常時義務化はUXを損なうため、<span class="big">禁止物疑い・トラブル時のみ本人確認</span>とする（OTP不達の手動オーバーライド=06と整合）。代理受取はPoC対象外</td></tr>
+<tr><td>長期放置：30日メール→60日電話→<b>90日で処分・費用請求</b></td><td><span class="b c-reg">規約</span><span class="b c-law">弁護士</span></td><td><span class="b drop">不採用</span></td><td><span class="big">既存が正＋未決</span>：既存は移送7日、abandonedはプラン終了+7日でフラグのみ、<b>処分フローはPoC対象外</b>で処分日数はベトナム法・弁護士確認待ち（09/12）。90日処分を勝手に条文化しない。段階連絡（メール/電話）の考え方は将来の処分フロー設計時に参考採用</td></tr>
+<tr><td>保険加入：施設賠償責任保険／受託物賠償責任保険</td><td><span class="b c-law">弁護士</span></td><td><span class="b adopt">採用</span></td><td>方向妥当。保険会社との条件確定交渉（戦略の次アクション②）に含める。補償額もここで確定</td></tr>
+<tr><td>クレーム対応フロー：受付写真確認→引渡写真確認→責任者確認→<b>引渡後24h以内のみ受付</b></td><td><span class="b c-reg">規約</span><span class="b c-man">マニュアル</span></td><td><span class="b adopt">採用</span></td><td>「引渡後24時間以内のみ申告受付」は明快で採用。既存の写真記録（預入・引渡）と接続。締切は規約に、確認手順はマニュアルへ</td></tr>
+<tr><td>利用規約への同意チェックボックス</td><td><span class="b c-reg">規約</span></td><td><span class="b adopt">採用</span></td><td><span class="big">既に実装済み</span>：予約画面に補償・免責同意＋禁止物チェック必須（03）、disclaimer_accepted_at保存（01）。提案の指摘は既存でカバー済み</td></tr>
+</table>
+</section>
+
+<section>
+<h2>6. サマリ</h2>
+<h3>採用（8）</h3>
+<p>禁止品目の詳細化／開披権限／犯罪対策・所有物宣言／利用拒否条項／緊急時初動フロー(マニュアル)／個人情報の保存期間・目的明記／保険加入／クレーム24h締切。※同意チェックボックスは既存実装済み。</p>
+<h3>条件付き採用（5）</h3>
+<p>補償対象外品目（禁止物と区別して統合）／テロ対応（マニュアル止め）／20kg2名作業（努力目標）／本人確認厳格化（トラブル時のみ）。</p>
+<h3>不採用（4）</h3>
+<p>補償300USD（既存500万VNDが正）／立証責任の利用者転嫁（法的に危険）／CCTV設置義務（相乗りモデルと衝突・本部交渉へ）／90日処分（既存7日移送＋処分は法確認待ち）。</p>
+<div class="note"><span class="big">次アクション：</span>採用・条件付き13項目を、①客向け利用規約＋プライバシーポリシー＋禁止物リストの<span class="big">実文面ワークシート</span>（Excel、通知テンプレと同方式）、②スタッフ運用・研修マニュアル、③弁護士確認リスト、の3ファイルに落とす。数値は既存の確定仕様（補償500万VND/放置7日/保持90日）を使う。</div>
+</section>
+
+<footer>KONCOCHII 規約強化提案 仕分け表 v1.0（2026-07-28）— 既存確定仕様を正とし衝突項目を不採用</footer>
+</main>
+</body>
+</html>
