@@ -4,7 +4,7 @@ import { TwoC2PPaymentProvider } from "@/lib/payment/twoc2p-provider";
 import type { PaymentProvider } from "@/lib/payment/types";
 
 export function getPaymentProvider(): PaymentProvider {
-  if (env.PAYMENT_PROVIDER === "twoc2p") {
+  if (env.PAYMENT_PROVIDER === "2c2p") {
     return new TwoC2PPaymentProvider();
   }
 

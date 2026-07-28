@@ -1,26 +1,26 @@
-import { createServiceClient } from "@/lib/db";
+import { db } from "@/db/client";
+import { auditLogs } from "@/db/schema";
 
-export type AuditAction = "booking.created" | "booking.updated" | "payment.created" | "auth.otp_verified" | "system.event";
+export type AuditActorType = "guest" | "staff" | "admin" | "system";
+
+export type AuditAction = "BOOKING_CREATED" | "OTP_VERIFY_FAIL" | "OTP_VERIFIED" | "ITEM_STORED" | "ITEM_RETURNED" | "SYSTEM_EVENT";
 
 export type AuditLogInput = {
   action: AuditAction;
+  actorType: AuditActorType;
   actorId?: string;
-  targetTable?: string;
-  targetId?: string;
-  metadata?: Record<string, unknown>;
+  bookingId?: string;
+  itemId?: string;
+  detail?: Record<string, unknown>;
 };
 
 export async function writeAuditLog(input: AuditLogInput) {
-  const supabase = createServiceClient();
-  const { error } = await supabase.from("audit_logs").insert({
+  await db.insert(auditLogs).values({
     action: input.action,
-    actor_id: input.actorId ?? null,
-    target_table: input.targetTable ?? null,
-    target_id: input.targetId ?? null,
-    metadata: input.metadata ?? {}
+    actorType: input.actorType,
+    actorId: input.actorId ?? null,
+    bookingId: input.bookingId ?? null,
+    itemId: input.itemId ?? null,
+    detail: input.detail ?? {}
   });
-
-  if (error) {
-    throw error;
-  }
 }

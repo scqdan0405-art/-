@@ -1,4 +1,4 @@
-export type PaymentProviderName = "mock" | "twoc2p";
+export type PaymentProviderName = "mock" | "2c2p";
 
 export type PaymentIntentRequest = {
   bookingId: string;

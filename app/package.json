@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "seed:auth": "node scripts/seed-auth.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
