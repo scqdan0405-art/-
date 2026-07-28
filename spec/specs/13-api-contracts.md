@@ -121,7 +121,7 @@ export const CreateBookingResponse = z.object({
   dropoffOtp: Otp,     // 平文はこのレスポンスと確認メールのみ
 });
 
-// GET /api/v1/bookings/:token  （OTPは含めない）
+// GET /api/v1/bookings/:token  （drop-off OTPは含めない。有効なpickup OTPのみ例外＝06のOTP不達対策）
 export const ItemView = z.object({
   id: z.string().uuid(),
   size: Size,
@@ -138,7 +138,12 @@ export const BookingView = z.object({
   totalVnd: Vnd,
   items: z.array(ItemView),
   returnDueAt: IsoUtc.nullable(),
+  activePickupOtp: z.object({ otp: Otp, expiresAt: IsoUtc }).nullable(), // 有効期間内(10分)・未使用の時のみ非null
 });
+
+// PATCH /api/v1/bookings/:token/email  （預け入れ前のみ・06のOTP不達対策③）
+export const UpdateEmailRequest = z.object({ email: z.string().email() });
+export const UpdateEmailResponse = z.object({ email: z.string().email() }); // 全item awaiting_dropoff 以外は 409 INVALID_TRANSITION
 ```
 
 ## 店舗向け（`contracts/store.ts`）

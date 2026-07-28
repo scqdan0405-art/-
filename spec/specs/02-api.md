@@ -27,10 +27,15 @@ Res 201: `{ bookingNo, bookingToken, dropoffOtp }` — **OTP平文を返すの�
 
 ### GET /api/v1/bookings/:token
 マイ予約(booking_token で照会)。QR再表示・ステータス確認用。
-Res: booking + items(status, tagNo, returnDueAt, overtimeFeeVnd)。OTPは含めない
+Res: booking + items(status, tagNo, returnDueAt, overtimeFeeVnd)。drop-off OTPは含めない。
+**例外**: 有効期間内(10分・未使用)の pickup OTP が存在する場合のみ `activePickupOtp: { otp, expiresAt }` を含める(OTP不達対策、06参照。返却時は audit_logs に PICKUP_OTP_VIEWED を記録)
 
 ### POST /api/v1/bookings/:token/resend
 確認メール再送。レート制限 3回/時
+
+### PATCH /api/v1/bookings/:token/email
+メールアドレス修正(OTP不達対策、06参照)。全itemが `awaiting_dropoff` のときのみ可(それ以外は409)。
+Req: `{ email }`(形式検証)。処理: 更新+新旧両アドレスへ通知メール+audit記録。レート制限 3回/時
 
 ### GET /api/v1/insurance-addons
 有効な追加補償オプション一覧(名称・料金・補償上限)

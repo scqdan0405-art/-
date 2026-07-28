@@ -16,7 +16,8 @@
 8. `specs/13-api-contracts.md` — API契約(zodスキーマ=型=バリデーションの**単一ソース**。フロント/バックで共有)
 9. `specs/14-notifications.md` — 通知・メールテンプレ(一覧/タイミング/変数/テンプレマスタ)
 10. `specs/15-acceptance-tests.md` — 受け入れテスト計画(E2Eシナリオ。**全Green が各Phaseの完了条件**)
-11. `TASKS.md` — 実装順序。この順に実装する
+11. `specs/16-auth-and-accounts.md` — 認証・アカウント管理(店舗アカウント/スタッフコード/管理者ロール/パスワード方針。06とセットで必読)
+12. `TASKS.md` — 実装順序。この順に実装する
 
 仕様と実装が矛盾したら仕様が正。仕様に不足があれば TASKS.md 末尾の「Open Questions」に追記して、妥当なデフォルトで進める。
 

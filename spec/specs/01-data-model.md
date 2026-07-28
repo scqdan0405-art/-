@@ -122,6 +122,7 @@ create table pickup_otps (
   id uuid primary key default gen_random_uuid(),
   booking_id uuid not null references bookings(id),
   otp_hash text not null,
+  otp_plain text,                          -- 予約ページ表示用(06の例外)。有効期間内のみ保持、使用/失効時に null 化
   expires_at timestamptz not null,         -- 発行+10分
   used_at timestamptz,
   created_at timestamptz not null default now()
@@ -210,3 +211,4 @@ create sequence booking_no_seq;
 - price_plans 9行(確定値): S=50,000/70,000/100,000・M=70,000/100,000/150,000・L=100,000/150,000/200,000(3h/6h/12h)。points S=1,M=2,L=3
 - fee_settings 初期値: overtime_grace_minutes=15 / overtime_hourly_vnd=10,000 / overtime_cap_hours=24 / cancellation_fee_vnd=20,000 / noshow_fee_vnd=20,000 / relocate_after_days=7 / insurance_limit_item_vnd=5,000,000 / insurance_limit_booking_vnd=10,000,000 / **daily_storage_fee_vnd=null(未確定・調査中)**
 - 管理者ユーザー1件(Supabase Auth, email: admin@example.com / パスワードは .env.example に記載)
+- 店舗アカウント3件(Supabase Auth, `app_metadata: {role:'store', store_id}`。email/パスワードは .env.example に記載。詳細は specs/16)
