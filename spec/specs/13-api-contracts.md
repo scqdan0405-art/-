@@ -112,7 +112,8 @@ export const CreateBookingRequest = z.object({
   channel: Channel.optional(),
   referralCode: z.string().optional(),
   disclaimerAccepted: z.literal(true),
-  prohibitedItemsAcknowledged: z.literal(true),
+  prohibitedItemsAcknowledged: z.literal(true),   // 禁止物(現金/貴重品/電子機器・記録媒体/危険物/生もの)不所持=12.10-C-1
+  ownershipDeclared: z.literal(true),             // 所有物宣言(specs/03・規約9)
   payment: z.object({ method: PaymentMethod, token: z.string() }),
 });
 export const CreateBookingResponse = z.object({
