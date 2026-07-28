@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KONCOCHII 開発整合性監査</title>
+<style>
+:root{--navy:#1F3864;--navy2:#2b4a86;--accent:#e8850c;--green:#1a9e5c;--red:#c0392b;--amber:#c47f0a;--bg:#f4f6fa;--card:#fff;--line:#dde3ee;--text:#232a3a;--muted:#697089;--code:#0b3d2e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Hiragino Sans','Yu Gothic',sans-serif;line-height:1.8}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:34px 24px;text-align:center}
+header .k{font-size:13px;letter-spacing:3px;opacity:.85}
+header h1{font-size:25px;margin:8px 0}
+main{max-width:1000px;margin:0 auto;padding:24px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-bottom:18px}
+h2{color:var(--navy);font-size:19px;margin-bottom:12px;border-left:5px solid var(--accent);padding-left:10px}
+h3{color:var(--navy2);font-size:15px;margin:14px 0 6px}
+p{font-size:14px;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#eef2f9;color:var(--navy)}
+code{background:#eef2f4;color:var(--code);padding:1px 5px;border-radius:4px;font-family:Consolas,monospace;font-size:12px}
+.sev{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:9px;white-space:nowrap}
+.crit{background:#fdeaea;color:var(--red)}
+.warn{background:#fdeeda;color:var(--amber)}
+.done{background:#e2f5ea;color:var(--green)}
+.note{background:#f6f8fc;border-left:4px solid var(--navy2);padding:10px 14px;font-size:13px;color:var(--muted);border-radius:0 8px 8px 0;margin:10px 0}
+.big{font-weight:700;color:var(--navy)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:22px}
+</style>
+</head>
+<body>
+<header>
+  <div class="k">KONCOCHII — DEV CONSISTENCY AUDIT</div>
+  <h1>🔍 開発整合性監査</h1>
+  <p>仕様間の矛盾・既存app実装との乖離・作成順序の点検 ／ 2026-07-28</p>
+</header>
+<main>
+
+<section>
+<h2>要旨</h2>
+<p>直近の仕様追加（16認証、OTP不達回避策、禁止物一本化、サイズ境界）を全体に反映するにあたり、仕様間の矛盾・既存 <code>app/</code> 実装との乖離を点検した。<span class="big">重大2件・注意3件・仕様側で修正済み3件</span>。実装着手前に「重大」を必ず解消すること。<span class="big">原則：仕様（specs/）が正。</span></p>
+</section>
+
+<section>
+<h2>A. 既存 app/ 実装と仕様の乖離（重大・T02で解消）</h2>
+<table>
+<tr><th>#</th><th>重大度</th><th>乖離</th><th>あるべき姿（specs）</th></tr>
+<tr><td>A1</td><td><span class="sev crit">重大</span></td><td>マイグレーションのテーブル不足。現状 <code>stores / bookings / payments / otp_challenges / audit_logs</code> の5表のみ</td><td>specs/01の13表：不足している <code>staff, price_plans, fee_settings, booking_items, pickup_otps, capacity_holds, partners, insurance_addons, inquiries, ota_vouchers</code> を追加</td></tr>
+<tr><td>A2</td><td><span class="sev crit">重大</span></td><td>OTPを <code>otp_challenges</code> 1本に <code>purpose</code> で混在（drop-off/pickup同居）</td><td>specs/06「drop-off OTP流用不可＝<span class="big">別テーブル検証</span>」。<code>bookings.dropoff_otp_hash</code>（ハッシュ列）＋独立 <code>pickup_otps</code>（<code>otp_hash</code>＋<span class="big"><code>otp_plain</code></span>=有効期間限定・OTP不達対策）に分離</td></tr>
+<tr><td>A3</td><td><span class="sev warn">注意</span></td><td>仕様に無い <code>payments</code> 独自テーブル</td><td>決済参照は <code>bookings.payment_provider / payment_ref</code>。仕様に寄せる（テーブル追加が要るなら仕様側に先に定義）</td></tr>
+<tr><td>A4</td><td><span class="sev warn">注意</span></td><td>Drizzle未導入（生 <code>@supabase/supabase-js</code>）</td><td>specs/11＝Drizzle ORM確定。T02でDrizzle導入し <code>supabase/migrations/</code> を正としてschema整合</td></tr>
+<tr><td>A5</td><td><span class="sev warn">注意</span></td><td><code>audit_logs.id</code> が uuid、actor列名も独自</td><td>specs/01＝<code>bigint generated always as identity</code>、列は <code>actor_type / actor_id / action / booking_id / item_id / detail</code></td></tr>
+</table>
+<p class="note">現状の <code>app/</code> は T01〜T03 の初期スケルトンで、データモデルはまだ specs/01 に未追従。<span class="big">このまま Phase2 以降を積むと全機能が誤ったスキーマ上に乗る。</span>T02（DB）を仕様どおりに作り直してから予約フローに進むこと。</p>
+</section>
+
+<section>
+<h2>B. 仕様間の内部矛盾（仕様側で修正済み）</h2>
+<table>
+<tr><th>#</th><th>状態</th><th>矛盾</th><th>対応</th></tr>
+<tr><td>B1</td><td><span class="sev done">修正済</span></td><td>容量チェックが <code>01</code>=日付単位合計 と <code>12.4</code>=時間帯の重なり で矛盾（夜またぎC4を取りこぼす旧モデル）</td><td>01を12.4に統一（<span class="big">区間 [occupy_start, occupy_end) の重なりで判定</span>・<code>SELECT FOR UPDATE</code>直列化）。インデックスも重なり用に明記</td></tr>
+<tr><td>B2</td><td><span class="sev done">修正済</span></td><td><code>PATCH /bookings/:token/email</code>（新設）が「新旧両アドレスへ通知」なのに、14に通知テンプレが無い</td><td>14に <code>email_changed</code> テンプレ追加（宛先=新旧両アドレス）</td></tr>
+<tr><td>B3</td><td><span class="sev done">反映済</span></td><td>TASKSに16認証・OTP不達回避策・禁止物拡張・開披等の作業項目が未記載</td><td>TASKSにT07b/T08(16準拠)/T09(禁止物・開披)/T14(アカウント管理)/T16(E14b・E14c)を追記</td></tr>
+</table>
+</section>
+
+<section>
+<h2>C. 作成順序（依存関係の確認）— 問題なし</h2>
+<p>Phase順（基盤→予約→店舗→管理→集客→仕上げ）は依存関係として妥当。ただし<span class="big">前提はT02が仕様どおりに直っていること</span>。特に：</p>
+<table>
+<tr><th>依存</th><th>内容</th></tr>
+<tr><td>T02 → 全Phase</td><td>13表・別OTPテーブル・fee_settings/price_plans が無いと料金・OTP・容量ロジックが実装できない</td></tr>
+<tr><td>T03c(契約) → T04以降</td><td>zod契約（activePickupOtp・UpdateEmail 追加済み=specs/13）を入口/出口でparse。先に確定</td></tr>
+<tr><td>T08(16認証) → T09/T10</td><td>role=store・store_id=JWT・スタッフコードゲートが無いと店舗APIの認可が成立しない</td></tr>
+<tr><td>T11(cron) → E9/E13等</td><td>no-show/overdue/abandoned の境界時刻テストの前提</td></tr>
+</table>
+</section>
+
+<section>
+<h2>D. 着手前チェックリスト（Codex/実装者向け）</h2>
+<table>
+<tr><th>#</th><th>やること</th><th>根拠</th></tr>
+<tr><td>1</td><td>Drizzle導入・<code>supabase/migrations/</code> を specs/01 の13表で作り直す（別OTPテーブル・otp_plain・bigint audit）</td><td>A1/A2/A4/A5・specs/01/11</td></tr>
+<tr><td>2</td><td>seed：店舗3・スタッフ各2・price_plans 9行・fee_settings 初期値(daily=null)・admin1・<span class="big">店舗アカウント3(app_metadata:role/store_id)</span></td><td>specs/01/16</td></tr>
+<tr><td>3</td><td>契約モジュール <code>src/contracts/</code> を specs/13 で作成（activePickupOtp・UpdateEmail含む）</td><td>specs/13</td></tr>
+<tr><td>4</td><td>各タスクで <code>npm run build && npm run test</code>、最終 <code>specs/15</code> E1〜E15＋E14b＋E14c 全Green</td><td>CLAUDE.md/TASKS</td></tr>
+<tr><td>5</td><td>秘密はコミットしない（<code>NEXT_PUBLIC_</code>に秘密を置かない・service roleはサーバのみ）</td><td>specs/06</td></tr>
+</table>
+</section>
+
+<footer>KONCOCHII 開発整合性監査 v1.0（2026-07-28）— 仕様(specs/)を正とする。重大2件はT02着手時に解消</footer>
+</main>
+</body>
+</html>

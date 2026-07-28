@@ -202,7 +202,8 @@ create sequence booking_no_seq;
 ## 制約・インデックス
 
 - `bookings(store_id, visit_date, status)`、`booking_items(booking_id)`、`audit_logs(booking_id)` にインデックス
-- 容量チェック: `visit_date` × `store_id` の `capacity_holds`(released=false)合計 + 新規ポイント ≤ `stores.capacity_points`。**予約作成トランザクション内で `select ... for update` により直列化**(オーバーブッキング防止)
+- 容量チェック(**12.4が正**): 日付単位ではなく **`[occupy_start, occupy_end)` の時間帯の重なり**で判定する。新規予約区間と重なる有効ホールド(released=false)の `Σ points` + 新規ポイント ≤ `stores.capacity_points`。**予約作成トランザクション内で対象店舗の該当区間を `select ... for update` 等で直列化**(オーバーブッキング防止・夜またぎ漏れ防止=12.4 C4)。※日付ベースの合計判定は不可(旧モデル。夜またぎを取りこぼす)
+- インデックス補足: 重なり判定用に `capacity_holds(store_id, occupy_start, occupy_end) where released=false`
 
 ## seed データ
 

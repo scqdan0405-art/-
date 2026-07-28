@@ -10,6 +10,7 @@ PoCの配信チャネルは **メール**（利用者）＋**画面/メール**�
 |---|---|---|---|
 | `booking_confirmation` | 決済成功で予約確定 | 利用者 | bookingNo, storeName, storeArea, storeAddress, planLabel, itemsSummary, totalVnd, **dropoffOtp**, bookingUrl, arrivalSlot, notes |
 | `pickup_otp` | 店舗が受取操作でOTP発行 | 利用者 | bookingNo, **pickupOtp**（10分有効）, storeName |
+| `email_changed` | 利用者が預入前にメール変更（PATCH /bookings/:token/email・06のOTP不達対策③） | 利用者（**新旧両アドレスへ送信**） | bookingNo, oldEmailMasked, newEmailMasked, bookingUrl |
 | `booking_cancelled_user` | 利用者が預入前にキャンセル | 利用者 | bookingNo, refundVnd, cancellationFeeVnd |
 | `booking_cancelled_noshow` | cron：no-show自動キャンセル | 利用者 | bookingNo, refundVnd |
 | `prohibited_item_refused` | 店舗が禁止物で受入拒否 | 利用者 | bookingNo, refundVnd |
