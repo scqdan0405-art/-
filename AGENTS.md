@@ -39,6 +39,13 @@ npm run test     # Vitest
 npx supabase db reset  # マイグレーション再適用+seed
 ```
 
+## Git運用
+
+- Codexは変更完了後、必要に応じて `git add`, `git commit`, `git push` まで実行する。
+- GitHub Desktopを前提にしない。
+- push後にコミットID、push先、確認URL、実行テストを報告する。
+- `.env`、秘密情報、実顧客情報はコミットしない。
+
 ## 厳守ルール
 
 - 金額は VND 整数（`bigint`）。日時は DB=UTC(`timestamptz`)、表示は `Asia/Ho_Chi_Minh`。
