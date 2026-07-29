@@ -46,6 +46,14 @@ npx supabase db reset  # マイグレーション再適用+seed
 - push後にコミットID、push先、確認URL、実行テストを報告する。
 - `.env`、秘密情報、実顧客情報はコミットしない。
 
+### 取りこぼし防止（複数エージェントで作業するため厳守）
+- 作業は原則 **`master` ブランチ**で行う。push は必ず **`git push origin master`（ブランチ全体）** で行い、特定コミットだけの選択pushはしない。
+- **`git reset`／force-push（`git push -f`）／履歴改変で他エージェントのコミットを落とさない**。巻き戻しが必要な時は打ち消しコミット（`git revert`）を使う。
+- Cowork（Claude）は spec/docs を更新して **commit まで行うが push はしない**（サンドボックスに認証情報が無いため）。Cowork は毎回「push が必要なコミットID」を報告する。
+- Codex が次に push する際、**master 上の Cowork のコミットも自動的に一緒に上がる**（内容理解は不要。ブランチpushが全コミットを送る）。
+- push 前に `git log origin/master..HEAD` で未push分を確認し、Cowork のコミットが含まれることを確かめてから push する。
+- Cowork は push 後に `git ls-remote origin master` でリモートSHAを照合し、自分のコミットが反映されたか検証・報告する。
+
 ## 厳守ルール
 
 - 金額は VND 整数（`bigint`）。日時は DB=UTC(`timestamptz`)、表示は `Asia/Ho_Chi_Minh`。
