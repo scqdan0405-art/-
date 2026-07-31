@@ -20,24 +20,29 @@
       </nav>
     </header>
     <main class="hero">
-      <p class="eyebrow">Store</p>
-      <h1>Store Console</h1>
-      <p class="lead">A secure operations workspace for luggage intake, pickup confirmation, and booking status updates.</p>
-      <section class="grid" aria-label="Foundation status">
+      <p class="eyebrow">Store ・ T08</p>
+      <h1>Vận hành cửa hàng</h1>
+      <p class="lead">Staff code gate, two primary operation buttons, today counters, and a 15-second stored-item polling list.</p>
+      <section class="grid" aria-label="Store operation actions">
         <article class="card">
-          <h2>Next.js</h2>
-          <p>App Router with strict TypeScript.</p>
+          <h2>1. Nhận gửi</h2>
+          <p>Verify drop-off OTP, attach tags, and require photos before storage begins.</p>
         </article>
         <article class="card">
-          <h2>Supabase</h2>
-          <p>Server-only service role access and RLS-first schema.</p>
+          <h2>3. Trả đồ</h2>
+          <p>Request pickup OTP, block drop-off OTP reuse, and keep partial pickups active.</p>
         </article>
         <article class="card">
-          <h2>Payments</h2>
-          <p>Mock provider now, 2C2P adapter stubbed for production.</p>
+          <h2>Mã nhân viên</h2>
+          <p>4-digit staff code is held in a server-side cookie for 15 minutes. Store APIs reject missing or inactive codes.</p>
         </article>
       </section>
-      <p class="note">This is a static GitHub Pages preview of the current placeholder UI. Store authentication and operations flows start in Phase 3.</p>
+      <section class="card" style="margin-top:18px">
+        <h2>Đang lưu giữ</h2>
+        <p><strong>BT-018</strong> ・ M ・ KC-000128 ・ Hạn trả 18:00 ・ OK</p>
+        <p style="color:#b42318"><strong>BT-021</strong> ・ L ・ KC-000131 ・ Hạn trả 12:00 ・ Quá hạn 80,000 VND</p>
+      </section>
+      <p class="note">This is a static GitHub Pages preview. The live Next.js route is protected by store JWT app_metadata and staff code checks.</p>
     </main>
   </div>
 </body>

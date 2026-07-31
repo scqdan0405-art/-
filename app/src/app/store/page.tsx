@@ -1,11 +1,5 @@
-import { PlaceholderPage } from "@/components/PlaceholderPage";
+import { StoreHome } from "./StoreHome";
 
 export default function StorePage() {
-  return (
-    <PlaceholderPage
-      eyebrow="Store"
-      title="Store Console"
-      description="A secure operations workspace for luggage intake, pickup confirmation, and booking status updates."
-    />
-  );
+  return <StoreHome />;
 }

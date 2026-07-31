@@ -3,7 +3,15 @@ import { auditLogs } from "@/db/schema";
 
 export type AuditActorType = "guest" | "staff" | "admin" | "system";
 
-export type AuditAction = "BOOKING_CREATED" | "OTP_VERIFY_FAIL" | "OTP_VERIFIED" | "ITEM_STORED" | "ITEM_RETURNED" | "SYSTEM_EVENT";
+export type AuditAction =
+  | "BOOKING_CREATED"
+  | "OTP_VERIFY_FAIL"
+  | "OTP_VERIFIED"
+  | "ITEM_STORED"
+  | "ITEM_RETURNED"
+  | "STAFF_CODE_DENIED"
+  | "STAFF_CODE_VERIFIED"
+  | "SYSTEM_EVENT";
 
 export type AuditLogInput = {
   action: AuditAction;
