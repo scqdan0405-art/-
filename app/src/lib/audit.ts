@@ -11,6 +11,8 @@ export type AuditAction =
   | "ITEM_RETURNED"
   | "STAFF_CODE_DENIED"
   | "STAFF_CODE_VERIFIED"
+  | "PICKUP_OTP_VIEWED"
+  | "EMAIL_CHANGED"
   | "SYSTEM_EVENT";
 
 export type AuditLogInput = {
