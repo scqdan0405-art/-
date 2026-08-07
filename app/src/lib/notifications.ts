@@ -36,3 +36,15 @@ export async function sendEmailChanged(input: { oldEmail: string; newEmail: stri
     getMailer().send({ to: input.newEmail, subject: `[KONCOCHII] Email changed ${input.bookingNo}`, text })
   ]);
 }
+
+export async function sendPickupOtp(input: { email: string; bookingNo: string; pickupOtp: string; expiresAt: Date }) {
+  await getMailer().send({
+    to: input.email,
+    subject: `[KONCOCHII] Pickup OTP ${input.bookingNo}`,
+    text: [
+      `Booking: ${input.bookingNo}`,
+      `Pickup OTP: ${input.pickupOtp}`,
+      `Expires at: ${input.expiresAt.toISOString()}`
+    ].join("\n")
+  });
+}
