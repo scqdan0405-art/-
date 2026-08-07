@@ -1,10 +1,10 @@
 import { and, eq, inArray, lte, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { pricePlans } from "@/db/schema";
-import type { PlanHours, Size } from "@/contracts/common";
+import type { ChannelTier, PlanHours, Size } from "@/contracts/common";
 import { DEFAULT_PRICE_TABLE, type PriceTable } from "@/lib/domain/pricing";
 
-export async function loadCurrentPriceTable(validOn: string): Promise<PriceTable> {
+export async function loadCurrentPriceTable(validOn: string, channelTier: ChannelTier = "direct"): Promise<PriceTable> {
   const rows = await db
     .select({
       size: pricePlans.size,
@@ -12,13 +12,20 @@ export async function loadCurrentPriceTable(validOn: string): Promise<PriceTable
       priceVnd: pricePlans.priceVnd
     })
     .from(pricePlans)
-    .where(and(lte(pricePlans.validFrom, validOn), inArray(pricePlans.size, ["S", "M", "L"])))
+    .where(and(lte(pricePlans.validFrom, validOn), eq(pricePlans.channelTier, channelTier), inArray(pricePlans.size, ["S", "M", "L"])))
     .orderBy(sql`${pricePlans.validFrom} desc`);
 
   const table: PriceTable = {
-    S: { ...DEFAULT_PRICE_TABLE.S },
-    M: { ...DEFAULT_PRICE_TABLE.M },
-    L: { ...DEFAULT_PRICE_TABLE.L }
+    direct: {
+      S: { ...DEFAULT_PRICE_TABLE.direct.S },
+      M: { ...DEFAULT_PRICE_TABLE.direct.M },
+      L: { ...DEFAULT_PRICE_TABLE.direct.L }
+    },
+    ota: {
+      S: { ...DEFAULT_PRICE_TABLE.ota.S },
+      M: { ...DEFAULT_PRICE_TABLE.ota.M },
+      L: { ...DEFAULT_PRICE_TABLE.ota.L }
+    }
   };
   const seen = new Set<string>();
 
@@ -29,7 +36,7 @@ export async function loadCurrentPriceTable(validOn: string): Promise<PriceTable
     if (seen.has(key)) {
       continue;
     }
-    table[size][planHours] = Number(row.priceVnd);
+    table[channelTier][size][planHours] = Number(row.priceVnd);
     seen.add(key);
   }
 

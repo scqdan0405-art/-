@@ -56,6 +56,7 @@ export const pricePlans = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     size: text("size").notNull(),
     planHours: integer("plan_hours").notNull(),
+    channelTier: text("channel_tier").notNull().default("direct"),
     priceVnd: bigint("price_vnd", { mode: "number" }).notNull(),
     capacityPoints: integer("capacity_points").notNull(),
     validFrom: date("valid_from").notNull().default(sql`current_date`)
@@ -63,7 +64,8 @@ export const pricePlans = pgTable(
   (t) => ({
     sizeChk: check("price_plans_size_chk", sql`${t.size} in ('S','M','L')`),
     planChk: check("price_plans_plan_chk", sql`${t.planHours} in (3,6,12)`),
-    uniq: uniqueIndex("price_plans_uniq").on(t.size, t.planHours, t.validFrom)
+    tierChk: check("price_plans_channel_tier_chk", sql`${t.channelTier} in ('direct','ota')`),
+    uniq: uniqueIndex("price_plans_uniq").on(t.size, t.planHours, t.channelTier, t.validFrom)
   })
 );
 
@@ -113,6 +115,7 @@ export const bookings = pgTable(
     otpLockedUntil: timestamp("otp_locked_until", { withTimezone: true }),
     disclaimerAcceptedAt: timestamp("disclaimer_accepted_at", { withTimezone: true }).notNull(),
     channel: text("channel").notNull().default("direct"),
+    channelCode: text("channel_code"),
     referralCode: text("referral_code"),
     externalRef: text("external_ref"),
     insuranceAddonVnd: bigint("insurance_addon_vnd", { mode: "number" }).notNull().default(0),
@@ -132,13 +135,27 @@ export const bookings = pgTable(
     planChk: check("bookings_plan_chk", sql`${t.planHours} in (3,6,12)`),
     channelChk: check(
       "bookings_channel_chk",
-      sql`${t.channel} in (
-        'direct','google','maps','ota_trip','ota_klook','ota_kkday',
-        'hotel','bus_tour','store_poster','sns'
-      )`
+      sql`${t.channel} in ('direct','organic','ota','referral','store','sns')`
     ),
     refundChk: check("bookings_refund_chk", sql`${t.refundStatus} in ('none','pending','done')`),
     idx: index("bookings_store_date_status_idx").on(t.storeId, t.visitDate, t.status)
+  })
+);
+
+export const salesChannels = pgTable(
+  "sales_channels",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    code: text("code").notNull().unique(),
+    name: text("name").notNull(),
+    channelType: text("channel_type").notNull(),
+    commissionRate: doublePrecision("commission_rate").notNull().default(0),
+    supportsVoucher: boolean("supports_voucher").notNull().default(false),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+  },
+  (t) => ({
+    typeChk: check("sales_channels_type_chk", sql`${t.channelType} in ('direct','organic','ota','referral','store','sns')`)
   })
 );
 
@@ -258,7 +275,6 @@ export const otaVouchers = pgTable(
     importedAt: timestamp("imported_at", { withTimezone: true }).notNull().defaultNow()
   },
   (t) => ({
-    provChk: check("ota_vouchers_provider_chk", sql`${t.provider} in ('trip','klook','kkday')`),
     sizeChk: check("ota_vouchers_size_chk", sql`${t.size} in ('S','M','L')`),
     planChk: check("ota_vouchers_plan_chk", sql`${t.planHours} in (3,6,12)`)
   })

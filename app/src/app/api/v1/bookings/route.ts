@@ -11,7 +11,10 @@ import { generateOtp, hashOtp } from "@/lib/domain/otp";
 import { bookingTotal, quoteLines } from "@/lib/domain/pricing";
 import { loadCurrentPriceTable } from "@/lib/domain/masters";
 import { getPaymentProvider } from "@/lib/payment";
+import type { PaymentIntent } from "@/lib/payment";
 import { sendBookingConfirmation } from "@/lib/notifications";
+import { resolveSalesChannel } from "@/lib/domain/channels";
+import { env } from "@/lib/env";
 
 export async function POST(request: Request) {
   const idempotencyKey = request.headers.get("Idempotency-Key");
@@ -26,14 +29,16 @@ export async function POST(request: Request) {
 
   try {
     const body = CreateBookingRequest.parse(await request.json());
+    const resolvedChannel = await resolveSalesChannel({ channel: body.channel, channelCode: body.channelCode });
     const prices = await loadCurrentPriceTable(body.visitDate);
-    const lines = quoteLines(body.items, body.planHours, prices);
-    const totalVnd = bookingTotal(body.items, body.planHours, prices);
+    const lines = quoteLines(body.items, body.planHours, "direct", prices);
+    const totalVnd = bookingTotal(body.items, body.planHours, "direct", prices);
     const arrivalStart = new Date(body.arrivalSlotStart);
     const occupyEnd = slotEnd(arrivalStart, body.planHours);
     const newPoints = pointsForItems(body.items);
     const dropoffOtp = generateOtp();
     const dropoffOtpHash = await hashOtp(dropoffOtp, 10);
+    const paymentProviderName = env.PAYMENT_PROVIDER;
 
     const payload = await db.transaction(async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${body.storeId}))`);
@@ -68,10 +73,11 @@ export async function POST(request: Request) {
           arrivalSlotStart: arrivalStart,
           planHours: body.planHours,
           totalAmountVnd: totalVnd,
-          paymentProvider: "mock",
+          paymentProvider: paymentProviderName,
           dropoffOtpHash,
           disclaimerAcceptedAt: new Date(),
-          channel: body.channel ?? "direct",
+          channel: resolvedChannel.channel,
+          channelCode: resolvedChannel.channelCode,
           referralCode: body.referralCode,
           externalRef: idempotencyKey,
           insuranceAddonVnd: 0
@@ -98,7 +104,7 @@ export async function POST(request: Request) {
         })
         .returning();
 
-      const payment = await getPaymentProvider().createPaymentIntent({
+      const payment = await executePayment(paymentProviderName, {
         bookingId: booking.id,
         amountVnd: BigInt(totalVnd),
         currency: "VND",
@@ -142,6 +148,29 @@ export async function POST(request: Request) {
     }
     return validationError(error);
   }
+}
+
+type PaymentInput = {
+  bookingId: string;
+  amountVnd: bigint;
+  currency: "VND";
+  idempotencyKey: string;
+  paymentToken: string;
+};
+
+async function executePayment(paymentProvider: string, input: PaymentInput): Promise<PaymentIntent> {
+  if (paymentProvider === "ota_voucher") {
+    // TODO(level2): validate and redeem ota_vouchers, then merge into the paid booking path.
+    return {
+      provider: "mock",
+      providerPaymentId: `ota_voucher_${input.bookingId}_${input.idempotencyKey}`,
+      status: "authorized",
+      amountVnd: input.amountVnd,
+      currency: input.currency
+    };
+  }
+
+  return getPaymentProvider().createPaymentIntent(input);
 }
 
 class RouteError extends Error {

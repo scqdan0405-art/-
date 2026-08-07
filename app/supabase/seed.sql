@@ -14,18 +14,32 @@ cross join (values
 ) as s(staff_code, display_name)
 on conflict (store_id, staff_code) do nothing;
 
-insert into price_plans (size, plan_hours, price_vnd, capacity_points)
+insert into sales_channels (code, name, channel_type, commission_rate, supports_voucher)
 values
-  ('S', 3, 50000, 1),
-  ('S', 6, 70000, 1),
-  ('S', 12, 100000, 1),
-  ('M', 3, 70000, 2),
-  ('M', 6, 100000, 2),
-  ('M', 12, 150000, 2),
-  ('L', 3, 100000, 3),
-  ('L', 6, 150000, 3),
-  ('L', 12, 200000, 3)
-on conflict (size, plan_hours, valid_from) do nothing;
+  ('direct', 'Direct', 'direct', 0, false),
+  ('google', 'Google Search', 'organic', 0, false),
+  ('maps', 'Google Maps', 'organic', 0, false),
+  ('trip', 'Trip.com', 'ota', 0.25, true),
+  ('klook', 'Klook', 'ota', 0.25, true),
+  ('kkday', 'KKday', 'ota', 0.25, true),
+  ('hotel', 'Hotel referral', 'referral', 0, false),
+  ('bus_tour', 'Bus tour referral', 'referral', 0, false),
+  ('store_poster', 'Store poster', 'store', 0, false),
+  ('sns', 'Social media', 'sns', 0, false)
+on conflict (code) do nothing;
+
+insert into price_plans (size, plan_hours, channel_tier, price_vnd, capacity_points)
+values
+  ('S', 3, 'direct', 50000, 1),
+  ('S', 6, 'direct', 70000, 1),
+  ('S', 12, 'direct', 100000, 1),
+  ('M', 3, 'direct', 70000, 2),
+  ('M', 6, 'direct', 100000, 2),
+  ('M', 12, 'direct', 150000, 2),
+  ('L', 3, 'direct', 100000, 3),
+  ('L', 6, 'direct', 150000, 3),
+  ('L', 12, 'direct', 200000, 3)
+on conflict (size, plan_hours, channel_tier, valid_from) do nothing;
 
 insert into fee_settings (key, value_vnd, note)
 values

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BookingNo, BookingStatus, BookingToken, Channel, IsoUtc, ItemStatus, Locale, Otp, PaymentMethod, Phone, PlanHours, Size, Vnd } from "./common";
+import { BookingNo, BookingStatus, BookingToken, Channel, ChannelCode, IsoUtc, ItemStatus, Locale, Otp, PaymentMethod, Phone, PlanHours, Size, Vnd } from "./common";
 
 export const StoresQuery = z.object({ date: z.string().date() });
 export const StoreSummary = z.object({
@@ -42,6 +42,7 @@ export const CreateBookingRequest = z.object({
   phone: Phone,
   locale: Locale,
   channel: Channel.optional(),
+  channelCode: ChannelCode,
   referralCode: z.string().optional(),
   disclaimerAccepted: z.literal(true),
   prohibitedItemsAcknowledged: z.literal(true),
