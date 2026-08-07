@@ -52,7 +52,13 @@ export const CreateBookingRequest = z.object({
 export const CreateBookingResponse = z.object({
   bookingNo: BookingNo,
   bookingToken: BookingToken,
-  dropoffOtp: Otp
+  dropoffOtp: Otp,
+  payment: z
+    .object({
+      status: z.enum(["requires_action", "authorized", "captured", "failed"]),
+      redirectUrl: z.string().url().optional()
+    })
+    .optional()
 });
 
 export const ItemView = z.object({

@@ -109,13 +109,28 @@ export async function POST(request: Request) {
         amountVnd: BigInt(totalVnd),
         currency: "VND",
         idempotencyKey,
-        paymentToken: body.payment.token
+        method: body.payment.method,
+        paymentToken: body.payment.token,
+        returnUrl: `${env.APP_BASE_URL}/b/${booking.bookingToken}`
       });
 
       if (payment.status === "failed") {
         await tx.update(bookings).set({ status: "payment_failed", paymentRef: payment.providerPaymentId }).where(eq(bookings.id, booking.id));
         await tx.update(capacityHolds).set({ released: true, releasedAt: new Date() }).where(eq(capacityHolds.id, hold.id));
         throw new RouteError("PAYMENT_FAILED", "Payment was declined.");
+      }
+
+      if (payment.status === "requires_action") {
+        await tx.update(bookings).set({ paymentRef: payment.providerPaymentId }).where(eq(bookings.id, booking.id));
+        return CreateBookingResponse.parse({
+          bookingNo: booking.bookingNo,
+          bookingToken: booking.bookingToken,
+          dropoffOtp,
+          payment: {
+            status: payment.status,
+            redirectUrl: payment.checkoutUrl
+          }
+        });
       }
 
       const [paidBooking] = await tx
@@ -127,19 +142,25 @@ export async function POST(request: Request) {
       return CreateBookingResponse.parse({
         bookingNo: paidBooking.bookingNo,
         bookingToken: paidBooking.bookingToken,
-        dropoffOtp
+        dropoffOtp,
+        payment: {
+          status: payment.status,
+          redirectUrl: payment.checkoutUrl
+        }
       });
     });
 
-    const bookingUrl = `${process.env.APP_BASE_URL ?? "http://localhost:3000"}/b/${payload.bookingToken}`;
-    await sendBookingConfirmation({
-      email: body.email,
-      locale: body.locale,
-      bookingNo: payload.bookingNo,
-      bookingUrl,
-      dropoffOtp,
-      totalVnd
-    });
+    if (payload.payment?.status !== "requires_action") {
+      const bookingUrl = `${env.APP_BASE_URL}/b/${payload.bookingToken}`;
+      await sendBookingConfirmation({
+        email: body.email,
+        locale: body.locale,
+        bookingNo: payload.bookingNo,
+        bookingUrl,
+        dropoffOtp,
+        totalVnd
+      });
+    }
 
     return NextResponse.json(rememberIdempotentResponse(idempotencyKey, payload), { status: 201 });
   } catch (error) {
@@ -155,7 +176,9 @@ type PaymentInput = {
   amountVnd: bigint;
   currency: "VND";
   idempotencyKey: string;
+  method: "card" | "apple_pay" | "google_pay" | "vietqr" | "momo";
   paymentToken: string;
+  returnUrl: string;
 };
 
 async function executePayment(paymentProvider: string, input: PaymentInput): Promise<PaymentIntent> {
@@ -170,7 +193,7 @@ async function executePayment(paymentProvider: string, input: PaymentInput): Pro
     };
   }
 
-  return getPaymentProvider().createPaymentIntent(input);
+  return getPaymentProvider().createPayment(input);
 }
 
 class RouteError extends Error {
