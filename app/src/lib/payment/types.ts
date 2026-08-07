@@ -5,6 +5,7 @@ export type PaymentIntentRequest = {
   amountVnd: bigint;
   currency: "VND";
   idempotencyKey: string;
+  paymentToken?: string;
 };
 
 export type PaymentIntent = {

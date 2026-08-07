@@ -2,6 +2,16 @@ import type { PaymentIntent, PaymentIntentRequest, PaymentProvider } from "@/lib
 
 export class MockPaymentProvider implements PaymentProvider {
   async createPaymentIntent(request: PaymentIntentRequest): Promise<PaymentIntent> {
+    if (request.paymentToken?.endsWith("4000")) {
+      return {
+        provider: "mock",
+        providerPaymentId: `mock_failed_${request.bookingId}_${request.idempotencyKey}`,
+        status: "failed",
+        amountVnd: request.amountVnd,
+        currency: request.currency
+      };
+    }
+
     return {
       provider: "mock",
       providerPaymentId: `mock_${request.bookingId}_${request.idempotencyKey}`,
