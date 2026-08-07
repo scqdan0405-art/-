@@ -12,8 +12,9 @@
 
 ## 7.2 流入元トラッキング(全チャネル共通)
 
-- すべての着地URLで `?ref=<code>` と UTMパラメータを受け付け、セッション保持し、予約作成時に `bookings.channel` / `bookings.referral_code` へ保存
-- channel 値: `direct` / `google` / `maps` / `ota_trip` / `ota_klook` / `ota_kkday` / `hotel` / `bus_tour` / `store_poster` / `sns`
+- すべての着地URLで `?ref=<code>` と UTMパラメータを受け付け、セッション保持し、予約作成時に `bookings.channel`(粗カテゴリ) / `bookings.channel_code`(具体的な流入元) / `bookings.referral_code` へ保存
+- **チャネルはレジストリ管理(`sales_channels`・01)**。`?ref=<code>` の `<code>` は `sales_channels.code` に対応。未登録コードは `channel='direct'`(または該当type)扱いにし、管理画面から登録できるようにする(ハードコードしない)
+- 粗カテゴリ `channel`: `direct` / `organic`(google,maps) / `ota`(trip,klook,kkday,agoda,…) / `referral`(hotel,bus_tour,…) / `store`(store_poster) / `sns`。具体名は `channel_code`。**新しいOTA/サイトは sales_channels に行追加で対応**(マイグレーション不要)
 - 管理の日次レポート・ダッシュボードにチャネル別内訳を追加(PoC KPI「自然流入比率」の実測)
 
 ## 7.3 紹介パートナー(ホテル・宿泊施設・バス/送迎・ツアー会社)

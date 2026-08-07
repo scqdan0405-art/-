@@ -18,7 +18,7 @@
 ## 日次レポート `/admin/daily`
 
 - 店舗×日別のマトリクス表(期間フィルタ、デフォルト直近14日)
-- 列: 日付 / 店舗 / 預かり件数(その日にstoredになったitem数) / 荷物個数内訳(S/M/L) / 返却完了数 / キャンセル数(no-show / 利用者都合を別掲) / 超過発生数 / 売上VND / 流入チャネル別内訳(direct/google/maps/ota/hotel/bus_tour/store_poster/sns)
+- 列: 日付 / 店舗 / 預かり件数(その日にstoredになったitem数) / 荷物個数内訳(S/M/L) / 返却完了数 / キャンセル数(no-show / 利用者都合を別掲) / 超過発生数 / 売上VND / 流入チャネル別内訳(粗カテゴリ direct/organic/ota/referral/store/sns。ドリルダウンで channel_code 別=trip/klook/agoda等。チャネルは sales_channels レジストリ由来)
 - 行クリックで該当日の予約一覧(予約管理画面に日付+店舗フィルタ付きで遷移)
 - CSVダウンロード対応(PoCのKPI検証「1店舗あたり1日5〜10件」の実測に使う)
 - 店舗向け `/store` ホームにも自店舗の「本日の預かり数 / 返却数」カウンタを表示する

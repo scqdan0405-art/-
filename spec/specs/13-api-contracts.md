@@ -19,10 +19,9 @@ import { z } from "zod";
 export const Size = z.enum(["S", "M", "L"]);
 export const PlanHours = z.union([z.literal(3), z.literal(6), z.literal(12)]);
 export const Locale = z.enum(["en", "vi", "ja", "ko", "zh-CN", "zh-TW", "hi"]);
-export const Channel = z.enum([
-  "direct","google","maps","ota_trip","ota_klook","ota_kkday",
-  "hotel","bus_tour","store_poster","sns",
-]);
+// 粗カテゴリ(集計用・安定)。具体的な流入元は channelCode(自由文字列=sales_channels.code)
+export const Channel = z.enum(["direct","organic","ota","referral","store","sns"]);
+export const ChannelCode = z.string().min(1).max(40).optional(); // 'trip','klook','agoda','google',... 任意サイトは登録で対応
 export const PaymentMethod = z.enum(["card","apple_pay","google_pay","vietqr","momo"]);
 
 export const BookingStatus = z.enum([
@@ -110,6 +109,7 @@ export const CreateBookingRequest = z.object({
   phone: Phone,
   locale: Locale,
   channel: Channel.optional(),
+  channelCode: ChannelCode,           // 具体的な流入元(sales_channels.code)。未登録は登録扱いに寄せる
   referralCode: z.string().optional(),
   disclaimerAccepted: z.literal(true),
   prohibitedItemsAcknowledged: z.literal(true),   // 禁止物(現金/貴重品/電子機器・記録媒体/危険物/生もの)不所持=12.10-C-1

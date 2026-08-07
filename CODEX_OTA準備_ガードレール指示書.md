@@ -6,7 +6,15 @@
 - OTAでの実販売はバウチャー型（レベル2）。手数料15〜35%・承認制・契約が先。→ 本体はいま作らない。
 - ただし「チャネル別価格」と「前払い予約」の2点だけは、料金/予約の**中核ロジックに関わる**ため、後付けだと作り直しになる。いま受け皿を用意する。
 
-## いま実装すること（3点のみ）
+## いま実装すること（4点のみ）
+
+### G0. チャネルのレジストリ化（Trip.com以外の類似サイトも行追加で対応）
+- **OTA名をコードにハードコードしない。** `sales_channels` テーブル（01）を追加：`code`(unique)/`name`/`channel_type`('direct'|'organic'|'ota'|'referral'|'store'|'sns')/`commission_rate`/`supports_voucher`/`is_active`。
+- `bookings.channel` を**粗カテゴリのcheck**（'direct','organic','ota','referral','store','sns'）に変更し、**`channel_code text`（自由文字列）**を追加＝具体的な流入元（'trip','klook','agoda','google'…）。既存T02は追加/変更マイグレーションで対応。
+- `ota_vouchers.provider` の**ハードコードcheckを削除**（`sales_channels.code` の緩い参照）。
+- seed：sales_channels に direct/google/maps/trip/klook/kkday/hotel/bus_tour/store_poster/sns（trip/klook/kkday は type=ota・commission 0.25・supports_voucher=true）。
+- 流入トラッキング：`?ref=<code>` の `<code>` を `sales_channels.code` に対応。未登録コードは粗カテゴリにフォールバックし、管理画面から登録可能に（ハードコードしない）。
+- → **Agoda等の新規サイトは「sales_channels に1行」だけで対応**（マイグレーション不要）。
 
 ### G1. price_plans にチャネル次元を追加（追加マイグレーション）
 - `price_plans` に **`channel_tier text not null default 'direct' check (channel_tier in ('direct','ota'))`** を追加（specs/01 更新済み）。
@@ -36,12 +44,18 @@
 - [ ] T05/T06 が direct で従来どおり動作（見積・予約・容量・OTP・冪等性）。
 - [ ] `npm run build && npm run test` 通過。AGENTS.md 規約で commit/push。
 
+## 受け入れ基準（G0追加分）
+- [ ] `sales_channels` 追加＋seed（10行前後）。`npx supabase db reset` 成功。
+- [ ] `bookings.channel` は粗カテゴリcheck、`channel_code` 追加。`ota_vouchers.provider` の固定checkが無い。
+- [ ] `?ref=agoda`（未登録でも）で予約でき、channel_code に記録される（新規サイトがコード改修なしで載る）。
+
 ## Codex に貼るプロンプト
 ```
-specs/08 と 01（price_plans.channel_tier 追記済み）、CODEX_OTA準備_ガードレール指示書.md を読み、
-Phase2 と同時に OTAガードレール G1〜G3 だけ実装。OTA本体（償還フロー）は作らない。
-- price_plans に channel_tier('direct'/'ota', 既定direct) を追加マイグレーションで足し、unique を (size,plan_hours,channel_tier,valid_from) に。seedは direct 9行のまま。
-- lib/pricing を price(size,planHours,channelTier='direct') に。specs/12.1のP1-P6テストは緑のまま。
-- 予約作成は payment_provider で決済を分岐できる構造にし、'ota_voucher'(将来)は枠だけTODO。paid合流は共通化。
+specs/08・01（sales_channels/channel_code/price_plans.channel_tier 追記済み）・13（Channel粗カテゴリ+ChannelCode）と
+CODEX_OTA準備_ガードレール指示書.md を読み、Phase2 と同時に OTAガードレール G0〜G3 だけ実装。OTA本体（償還フロー）は作らない。
+- G0: sales_channels レジストリ追加(seed 10行)。bookings.channel を粗カテゴリ(direct/organic/ota/referral/store/sns)に、channel_code(自由文字列)追加。ota_vouchers.provider の固定checkは外す。?ref=<code> は sales_channels.code に対応・未登録はフォールバック。→ 任意OTAは行追加で対応。
+- G1: price_plans に channel_tier('direct'/'ota',既定direct) 追加、unique を (size,plan_hours,channel_tier,valid_from)。seedは direct 9行。
+- G2: lib/pricing を price(size,planHours,channelTier='direct')。specs/12.1 P1-P6 緑のまま。
+- G3: 予約作成は payment_provider で決済分岐できる構造に。'ota_voucher'(将来)は枠だけTODO。paid合流は共通化。
 - build&test通過→commit→git push origin master。完了後にコミットID・確認URL・テスト結果を報告。
 ```

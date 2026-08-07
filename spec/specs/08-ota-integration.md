@@ -12,9 +12,16 @@
 ## 「今すぐ準備すべきこと」と「契約後に作ること」の切り分け(重要)
 
 **いま準備する(安価・Phase2構築中に仕込む＝後の作り直しを防ぐガードレール)**
+0. **チャネルのレジストリ化(任意サイト対応の要)**: OTA名をスキーマにハードコードしない。`sales_channels` レジストリ(01)で管理し、`bookings.channel`(粗カテゴリ)＋`bookings.channel_code`(具体名) で記録。`ota_vouchers.provider` も check を外し `sales_channels.code` の緩い参照に。→ **Trip.com以外(Agoda/GetYourGuide/その他)も行を1つ足すだけで対応**、マイグレーション不要。
 1. **チャネル別価格**: `price_plans.channel_tier`('direct'/'ota') を先行予約済み(01)。料金計算関数は最初から `(size, plan_hours, channel_tier)` で引く。PoCは常に 'direct'。→ OTA価格を後から足しても料金ロジックを触らない。
 2. **前払い/外部発生の予約**: 予約作成を「PSP決済」以外の経路でも `paid` にできるようにしておく(`bookings.payment_provider` に 'ota_voucher' を許容、PSP呼び出しをスキップして paid で作成できる分岐余地)。voucher償還はこの経路に載る。
-3. スキーマは `ota_vouchers` / `bookings.channel` / `external_ref` が予約済み(01)。追加不要。
+3. スキーマは `ota_vouchers` / `sales_channels` / `bookings.channel_code` / `external_ref` が予約済み(01)。追加不要。
+
+## 新しいOTA/類似サイトを追加する手順(将来・レベル2運用時)
+1. `sales_channels` に1行(code/name/type='ota'/commission_rate/supports_voucher=true)を追加。
+2. 必要なら `price_plans` に `channel_tier='ota'` 価格行を追加(手数料を吸収した売価)。
+3. 償還フロー(レベル2本体)は全OTA共通の1実装を使う(provider はデータ)。**個社ごとのコード改修は不要**。
+4. サプライヤーAPI直結が要るOTAのみ、レベル3で個別アダプタを足す(`lib/ota/<provider>.ts` の想定)。
 
 **契約後に作る(レベル2本体・OTA条件が確定してから)**
 - バウチャーのコード形式・インポート/検証、償還フロー、精算突合、キャンセル同期。下記「レベル2」の通り。

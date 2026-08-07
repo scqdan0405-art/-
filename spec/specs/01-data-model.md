@@ -88,7 +88,8 @@ create table bookings (
   otp_locked_until timestamptz,
   disclaimer_accepted_at timestamptz not null,
   channel text not null default 'direct'
-    check (channel in ('direct','google','maps','ota_trip','ota_klook','ota_kkday','hotel','bus_tour','store_poster','sns')),
+    check (channel in ('direct','organic','ota','referral','store','sns')),  -- 集計用の粗カテゴリ(安定・小集合)
+  channel_code text,                       -- 具体的な流入元コード(sales_channels.code)。例 'trip','klook','agoda','google','hotel_abc'。任意サイトは行追加で対応(ハードコードしない)
   referral_code text,                      -- partners.code(紹介パートナー経由時)
   external_ref text,                       -- OTAバウチャーコード/OTA予約番号(レベル2用)
   insurance_addon_vnd bigint not null default 0,  -- 任意の追加補償オプション料金(0=基本補償のみ)
@@ -145,7 +146,22 @@ create table capacity_holds (
 );
 -- 重なり判定用インデックス: (store_id, occupy_start, occupy_end) where released=false
 
--- 紹介パートナー(ホテル・バス・ツアー会社等)
+-- 販売/流入チャネル レジストリ(OTA・検索・SNS等をデータで管理。新規サイトは行追加で対応=ハードコード禁止)
+create table sales_channels (
+  id uuid primary key default gen_random_uuid(),
+  code text unique not null,               -- 'direct','google','maps','trip','klook','kkday','agoda','getyourguide','sns',...
+  name text not null,
+  channel_type text not null               -- bookings.channel と同じ粗カテゴリ
+    check (channel_type in ('direct','organic','ota','referral','store','sns')),
+  commission_rate numeric(5,4) default 0,  -- OTA手数料率(0.15-0.35等)。精算・純貢献計算に使用。未定はnull可
+  supports_voucher boolean not null default false,  -- レベル2バウチャー償還対象か
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+-- 参照: bookings.channel_code / ota_vouchers.provider は sales_channels.code を指す(緩い参照)。
+-- 新しいOTA(例 Agoda/GetYourGuide)への対応は「sales_channels に1行 + 必要なら price_plans に ota価格行」を追加するだけ。マイグレーション不要。
+
+-- 紹介パートナー(ホテル・バス・ツアー会社等。オフラインの紹介元。sales_channels(type=referral)と併用可)
 create table partners (
   id uuid primary key default gen_random_uuid(),
   code text unique not null,               -- ?ref= に使う紹介コード
@@ -179,7 +195,7 @@ create table inquiries (
 -- OTAバウチャー(レベル2用。PoCではテーブルのみ作成)
 create table ota_vouchers (
   id uuid primary key default gen_random_uuid(),
-  provider text not null check (provider in ('trip','klook','kkday')),
+  provider text not null,                   -- sales_channels.code(緩い参照)。ハードコードのcheckは付けない=任意OTA対応
   code text unique not null,
   size text not null check (size in ('S','M','L')),
   plan_hours int not null check (plan_hours in (3,6,12)),
@@ -215,5 +231,6 @@ create sequence booking_no_seq;
 - 各店舗スタッフ2名
 - price_plans 9行(確定値・全て channel_tier='direct'): S=50,000/70,000/100,000・M=70,000/100,000/150,000・L=100,000/150,000/200,000(3h/6h/12h)。points S=1,M=2,L=3。OTA行(channel_tier='ota')は 08 レベル2 稼働時に追加
 - fee_settings 初期値: overtime_grace_minutes=15 / overtime_hourly_vnd=10,000 / overtime_cap_hours=24 / cancellation_fee_vnd=20,000 / noshow_fee_vnd=20,000 / relocate_after_days=7 / insurance_limit_item_vnd=5,000,000 / insurance_limit_booking_vnd=10,000,000 / **daily_storage_fee_vnd=null(未確定・調査中)**
+- sales_channels 初期行(例): direct(direct)/google(organic)/maps(organic)/trip(ota,0.25)/klook(ota,0.25)/kkday(ota,0.25)/hotel(referral)/bus_tour(referral)/store_poster(store)/sns(sns)。**新規OTAは行追加で対応**(Agoda等)。commission_rateは目安・契約で更新
 - 管理者ユーザー1件(Supabase Auth, email: admin@example.com / パスワードは .env.example に記載)
 - 店舗アカウント3件(Supabase Auth, `app_metadata: {role:'store', store_id}`。email/パスワードは .env.example に記載。詳細は specs/16)
