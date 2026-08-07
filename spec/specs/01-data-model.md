@@ -35,9 +35,13 @@ create table price_plans (
   plan_hours int not null check (plan_hours in (3,6,12)),
   price_vnd bigint not null,
   capacity_points int not null,           -- S=1,M=2,L=3
+  channel_tier text not null default 'direct'
+    check (channel_tier in ('direct','ota')),  -- OTA向けは別価格(手数料15-35%吸収)。08レベル2用に先行予約
   valid_from date not null default current_date,
-  unique(size, plan_hours, valid_from)
+  unique(size, plan_hours, channel_tier, valid_from)
 );
+-- 料金参照は「size×plan_hours×channel_tier の valid_from<=today 最新行」。
+-- PoCは全予約 channel_tier='direct'。OTA行(=ota)は 08 レベル2 稼働時に追加(直販行はそのまま)。
 
 -- スカラー料金設定マスタ(超過単価・打ち止め時間・日額・各種手数料など。画面から変更可能)
 -- サイズ×時間の料金は price_plans、単発の金額系はここで管理。ハードコード禁止。
@@ -209,7 +213,7 @@ create sequence booking_no_seq;
 
 - 店舗3件(BT/BV: capacity 20pt。AP: 30pt)。**PoCの3店舗はすべて24時間営業**(open 00:00 / close 24:00)
 - 各店舗スタッフ2名
-- price_plans 9行(確定値): S=50,000/70,000/100,000・M=70,000/100,000/150,000・L=100,000/150,000/200,000(3h/6h/12h)。points S=1,M=2,L=3
+- price_plans 9行(確定値・全て channel_tier='direct'): S=50,000/70,000/100,000・M=70,000/100,000/150,000・L=100,000/150,000/200,000(3h/6h/12h)。points S=1,M=2,L=3。OTA行(channel_tier='ota')は 08 レベル2 稼働時に追加
 - fee_settings 初期値: overtime_grace_minutes=15 / overtime_hourly_vnd=10,000 / overtime_cap_hours=24 / cancellation_fee_vnd=20,000 / noshow_fee_vnd=20,000 / relocate_after_days=7 / insurance_limit_item_vnd=5,000,000 / insurance_limit_booking_vnd=10,000,000 / **daily_storage_fee_vnd=null(未確定・調査中)**
 - 管理者ユーザー1件(Supabase Auth, email: admin@example.com / パスワードは .env.example に記載)
 - 店舗アカウント3件(Supabase Auth, `app_metadata: {role:'store', store_id}`。email/パスワードは .env.example に記載。詳細は specs/16)

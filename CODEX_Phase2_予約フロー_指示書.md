@@ -22,7 +22,7 @@
 ## 2. T05 — 見積＋プラン選択（`POST /api/v1/quotes`）
 
 **API**: `POST /api/v1/quotes`（契約 `QuoteRequest`/`QuoteResponse`）。**見積は保存しない**。予約時に再計算し一致検証。
-- `lib/pricing.ts`：`bookingTotal(items, planHours)= Σ price(size,planHours)`。**specs/12.1 の P1〜P6 をユニットテスト**（S=50/70/100・M=70/100/150・L=100/150/200千VND）。
+- `lib/pricing.ts`：`bookingTotal(items, planHours, channelTier='direct')= Σ price(size,planHours,channelTier)`。**specs/12.1 の P1〜P6 をユニットテスト**（direct・S=50/70/100・M=70/100/150・L=100/150/200千VND）。※チャネル対応は OTAガードレール G2（`CODEX_OTA準備_ガードレール指示書.md`）。PoCは常に direct。
 - PoCでは `insuranceAddonId` は送らない（`insuranceAddonVnd=0`・基本補償のみ）。
 - 画面 `/[locale]/book/[storeCode]`（specs/03 画面2）:
   - サイズ S/M/L の個数を +/−（合計1〜5個）。**サイズ目安を表示（非重複）**：S=20kg以下 / M=20kg超〜30kg以下 / L=29in以上または30kg超。「実物が違えば店頭でサイズ修正・差額精算」注記。
