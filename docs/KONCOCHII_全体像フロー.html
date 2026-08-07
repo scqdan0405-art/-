@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KONCOCHII 全体像と作業の流れ</title>
+<style>
+body{font-family:'Segoe UI','Hiragino Sans','Yu Gothic',sans-serif;max-width:980px;margin:0 auto;padding:20px;color:#232a3a;line-height:1.5;background:#f4f6fa}
+*{box-sizing:border-box}
+.hd{background:linear-gradient(135deg,#1F3864,#2b4a86);color:#fff;border-radius:14px;padding:20px 24px;margin-bottom:14px}
+.hd h1{margin:0;font-size:22px}
+.hd p{margin:6px 0 0;font-size:13px;opacity:.9}
+.card{background:#fff;border:1px solid #dde3ee;border-radius:14px;padding:16px 20px;margin-bottom:14px}
+.card h2{margin:0 0 12px;color:#1F3864;font-size:16px;border-left:4px solid #e8850c;padding-left:9px}
+.lanes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.lane{border:1px solid #dde3ee;border-radius:10px;padding:12px}
+.lane .t{font-weight:700;font-size:14px;margin-bottom:6px}
+.lane ul{margin:0;padding-left:16px}.lane li{font-size:12.5px;margin-bottom:3px;color:#3a4256}
+.h{background:#eef2f9}.c{background:#eafaf3}.w{background:#fff6e9}
+.phase{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.pbox{flex:1;min-width:140px;border-radius:10px;padding:10px 12px;border:1px solid #dde3ee}
+.pbox .p{font-size:11px;font-weight:700;letter-spacing:.5px}
+.pbox .ti{font-size:14px;font-weight:700;margin:2px 0}.pbox .ta{font-size:11.5px;color:#556}
+.done{background:#e2f5ea;border-color:#b6e3c8}.now{background:#fdeeda;border-color:#f0cd94}
+.todo{background:#f4f6fa;border-color:#dde3ee;color:#8a90a0}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;margin-left:4px}
+.bd{background:#1a9e5c;color:#fff}.bn{background:#e8850c;color:#fff}.bt{background:#c3c9d6;color:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chip{font-size:12.5px;background:#f4f6fa;border:1px solid #dde3ee;border-radius:8px;padding:8px 11px;margin-bottom:6px}
+.chip b{color:#1F3864}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.fstep{background:#eef2f9;border:1px solid #cfd8ea;border-radius:8px;padding:8px 12px;font-weight:600;color:#1F3864}
+.arrow{color:#8a90a0;font-weight:700}
+.legend{font-size:11.5px;color:#697089;margin-top:8px}
+footer{text-align:center;color:#697089;font-size:12px;padding:16px}
+@media(max-width:680px){.lanes,.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hd">
+  <h1>🧳 KONCOCHII 荷物預かりサービス（PoC）— 全体像と作業の流れ</h1>
+  <p>ホーチミン市・コンビニ提携型／3店舗で実証。Web予約→事前決済→QR+OTPで預入・返却。更新: 2026-07-28</p>
+</div>
+
+<div class="card">
+  <h2>① 3者の役割分担</h2>
+  <div class="lanes">
+    <div class="lane h">
+      <div class="t">👤 人間（SU Yanほか）</div>
+      <ul>
+        <li>利用規約・禁止物の文面記入</li>
+        <li>店舗バックヤード実地確認</li>
+        <li>損益シミュの精査</li>
+        <li>弁護士確認・保険交渉</li>
+        <li>最終承認・意思決定</li>
+      </ul>
+    </div>
+    <div class="lane c">
+      <div class="t">🤖 Codex（実装）</div>
+      <ul>
+        <li>アプリ開発（Next.js+Supabase）</li>
+        <li>ローカルで build/test/DB</li>
+        <li>git add/commit/push 担当</li>
+        <li>自己検証・自己修正</li>
+      </ul>
+    </div>
+    <div class="lane w">
+      <div class="t">🧠 Cowork（AI補助）</div>
+      <ul>
+        <li>仕様の整備・整合性監査</li>
+        <li>Codex向け実装指示書</li>
+        <li>資料・Excel・マニュアル</li>
+        <li>commit（pushはCodex）</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>② 開発フェーズの進捗　<span class="badge bd">完了</span><span class="badge bn">進行/次</span><span class="badge bt">未着手</span></h2>
+  <div class="phase">
+    <div class="pbox done"><div class="p">PHASE 1</div><div class="ti">基盤</div><div class="ta">T01–T03 環境・DB・共通</div></div>
+    <div class="pbox done"><div class="p">PHASE 2</div><div class="ti">予約フロー</div><div class="ta">T04–T07 検索/見積/予約/QR</div></div>
+    <div class="pbox now"><div class="p">PHASE 3</div><div class="ti">店舗オペ</div><div class="ta">T08✓ ／ T09–T11 が次</div></div>
+  </div>
+  <div class="phase">
+    <div class="pbox todo"><div class="p">PHASE 4</div><div class="ti">管理</div><div class="ta">T12–T14b ダッシュ/精算</div></div>
+    <div class="pbox todo"><div class="p">PHASE 5</div><div class="ti">集客</div><div class="ta">T15 SEO/OTA/POP</div></div>
+    <div class="pbox todo"><div class="p">PHASE 6</div><div class="ti">仕上げ</div><div class="ta">i18n/E2E/セキュリティ監査</div></div>
+  </div>
+  <div class="legend">※ DBは仕様不一致を発見し作り直し済み（別OTPテーブル・13表・Drizzle）。Codexは T02〜T08 完了、今は「チャネル/OTA汎用化の適用 → T09–T11」。</div>
+</div>
+
+<div class="card">
+  <h2>③ このセッションで作った/直したもの</h2>
+  <div class="grid2">
+    <div>
+      <div class="chip"><b>仕様の確定</b>：認証・権限(16)／OTP不達回避策／サイズ境界／禁止物の一本化／写真・履歴の責任分界</div>
+      <div class="chip"><b>整合性監査</b>：app実装の乖離を発見→修正（別OTP・容量判定・通知テンプレ）</div>
+      <div class="chip"><b>OTA汎用化</b>：チャネルをレジストリ化＝Trip.com等“類似サイトは行追加だけ”で対応</div>
+    </div>
+    <div>
+      <div class="chip"><b>Codex指示書</b>：T02再構築／Phase2／Phase3-6／OTAガードレール／次アクション</div>
+      <div class="chip"><b>事業資料</b>：勝ち筋・競合分析／損益分岐シミュ（簡易+詳細6タブ）</div>
+      <div class="chip"><b>運用資料</b>：規約実文面ワークシート／スタッフ研修マニュアル</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>④ Git運用の仕組み（取りこぼし防止）</h2>
+  <div class="flow">
+    <span class="fstep">Cowork/Codex が変更</span><span class="arrow">→</span>
+    <span class="fstep">commit（master）</span><span class="arrow">→</span>
+    <span class="fstep">Codex が push origin master</span><span class="arrow">→</span>
+    <span class="fstep">Cowork が反映を照合・報告</span>
+  </div>
+  <div class="legend">Coworkは認証が無くpushしない＝commitのみ。ブランチ全体をpushするので誰のコミットも一緒に上がる。force-push禁止（AGENTS.md）。</div>
+</div>
+
+<div class="card">
+  <h2>⑤ 次にやること</h2>
+  <div class="grid2">
+    <div>
+      <div class="chip">🤖 <b>Codex</b>：次アクション指示書を渡す → チャネル/OTA適用（Step A）→ T09預かる/T10返す/T11 cron（Step B）</div>
+    </div>
+    <div>
+      <div class="chip">👤 <b>人間</b>：規約文面の記入・翻訳／バックヤード確認／弁護士・保険</div>
+      <div class="chip">🧠 <b>Cowork候補</b>：本部提案書／PoC計測フォーマット／規約の日本語ドラフト</div>
+    </div>
+  </div>
+</div>
+
+<footer>KONCOCHII 全体像フロー v1.0（2026-07-28）／ 詳細は spec/・docs/・CODEX_*指示書 を参照</footer>
+</body>
+</html>
