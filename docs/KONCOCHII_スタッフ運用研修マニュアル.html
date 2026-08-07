@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KONCOCHII スタッフ運用・研修マニュアル</title>
+<style>
+:root{--navy:#1F3864;--navy2:#2b4a86;--accent:#e8850c;--green:#1a9e5c;--red:#c0392b;--amber:#c47f0a;--bg:#f4f6fa;--card:#fff;--line:#dde3ee;--text:#232a3a;--muted:#697089}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Hiragino Sans','Yu Gothic',sans-serif;line-height:1.85}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:34px 24px;text-align:center}
+header .k{font-size:13px;letter-spacing:3px;opacity:.85}
+header h1{font-size:25px;margin:8px 0}
+header p{opacity:.9;font-size:14px}
+main{max-width:900px;margin:0 auto;padding:24px}
+nav{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:18px;font-size:14px}
+nav a{color:var(--navy2);text-decoration:none;margin-right:14px;white-space:nowrap}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-bottom:18px}
+h2{color:var(--navy);font-size:20px;margin-bottom:6px;border-left:5px solid var(--accent);padding-left:10px}
+.tri{font-size:12px;color:var(--muted);margin:0 0 12px 15px}
+h3{color:var(--navy2);font-size:16px;margin:16px 0 6px}
+p{font-size:14px;margin-bottom:8px}
+ol,ul{margin:6px 0 10px 22px}
+li{font-size:14px;margin-bottom:5px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#eef2f9;color:var(--navy)}
+.step{display:flex;gap:12px;align-items:flex-start;margin:10px 0}
+.num{flex:none;width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.box{border-radius:0 8px 8px 0;padding:10px 14px;font-size:13.5px;margin:10px 0}
+.warn{background:#fdeaea;border-left:4px solid var(--red)}
+.tip{background:#eafaf3;border-left:4px solid var(--green)}
+.note{background:#f6f8fc;border-left:4px solid var(--navy2);color:var(--muted)}
+.big{font-weight:700;color:var(--navy)}
+.red{color:var(--red);font-weight:700}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:22px}
+@media print{nav{display:none}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <div class="k">KONCOCHII — STAFF OPERATIONS & TRAINING</div>
+  <h1>🧑‍🏫 スタッフ運用・研修マニュアル</h1>
+  <p>店舗スタッフ向け実務手順書 ／ Cẩm nang vận hành cho nhân viên ／ Staff handbook — v1.0 (2026-07-28)</p>
+</header>
+<main>
+
+<nav>
+<b>目次:</b>
+<a href="#a">0. 心構え</a>
+<a href="#b">1. ログインとスタッフコード</a>
+<a href="#c">2. 預かる</a>
+<a href="#d">3. 返す</a>
+<a href="#e">4. 禁止物・受入拒否</a>
+<a href="#f">5. 開披</a>
+<a href="#g">6. むき出し荷物</a>
+<a href="#h">7. 重量物・労災</a>
+<a href="#i">8. 緊急時</a>
+<a href="#j">9. トラブル対応</a>
+<a href="#k">10. やってはいけない</a>
+</nav>
+
+<section id="a">
+<h2>0. 基本の心構え</h2>
+<p class="tri">JP / VI: Nguyên tắc cơ bản / EN: Basics</p>
+<p>KONCOCHIIは「お客様の大切な荷物を、コンビニが責任を持って預かる」サービスです。丁寧さと確実さがブランドそのものです。次の3つを常に守ってください。</p>
+<ul>
+<li><span class="big">確認は声に出して</span>：予約番号・OTP・個数・タグ番号は必ず口頭で復唱する。</li>
+<li><span class="big">写真は必ず撮る</span>：預かるとき、荷物1個ごとに写真を撮る（撮らないと次へ進めません）。</li>
+<li><span class="big">乱暴に扱わない</span>：投げない・積み上げすぎない・引きずらない。日本品質の丁寧さがお客様の安心になります。</li>
+</ul>
+<div class="box note">写真と保管履歴は<b>運営が管理</b>し、システムが保存します。店舗は「記録する」だけで、データの保存・削除には関与しません（プライバシーポリシー準拠）。</div>
+</section>
+
+<section id="b">
+<h2>1. ログインとスタッフコード</h2>
+<p class="tri">VI: Đăng nhập & mã nhân viên / EN: Login & staff code</p>
+<ol>
+<li>店舗タブレットで<b>店舗アカウント</b>にログイン（メール＋パスワード）。初回は必ずパスワード変更を求められます。</li>
+<li>操作の前に<b>自分の4桁スタッフコード</b>を入力。誰が操作したかの記録に使います（15分で自動的に再入力）。</li>
+<li>スタッフコードは<span class="red">他人に教えない・共有しない</span>。事故時に「誰が対応したか」を守るためのものです。</li>
+</ol>
+<div class="box warn">パスワードやスタッフコードを紙に貼らない。退職者が出たら管理者に連絡してコードを失効させる。</div>
+</section>
+
+<section id="c">
+<h2>2. 預かる（チェックイン）</h2>
+<p class="tri">VI: Nhận gửi hành lý / EN: Check-in</p>
+<div class="step"><div class="num">1</div><div>お客様のQRコードをスキャン（または予約番号を手入力）。</div></div>
+<div class="step"><div class="num">2</div><div>お客様に<b>預け入れ用の暗証番号（OTP）</b>を聞いて入力。メールに書いてあります。一致しないと進めません（5回間違えると15分ロック）。</div></div>
+<div class="step"><div class="num">3</div><div>荷物を1個ずつ確認：<b>タグ番号を付けて入力</b>＋<b>写真を撮影</b>（必須）。傷・汚れがあれば写真で分かるように撮る。</div></div>
+<div class="step"><div class="num">4</div><div>実物のサイズが予約と違うとき（例：Sで予約→実物はM）は<b>サイズ修正</b>。差額が画面に出るので店頭で精算。</div></div>
+<div class="step"><div class="num">5</div><div>全部そろったら「保管開始」。画面に出る<b>「◯◯時までに返却」</b>をお客様に伝える。</div></div>
+<div class="box tip">複数個口は<b>まとめて1回で</b>預かる（別々の時間に分けて預けることはできません）。時間をずらしたい人は別予約に。</div>
+<div class="box warn">サイズの目安：<b>S=20kg以下 / M=20kg超〜30kg以下 / L=29インチ以上または30kg超</b>。迷ったら重さで判断。最終判断はスタッフでOK（サイズ修正機能あり）。</div>
+</section>
+
+<section id="d">
+<h2>3. 返す（チェックアウト）</h2>
+<p class="tri">VI: Trả hành lý / EN: Check-out</p>
+<div class="step"><div class="num">1</div><div>QR/予約番号で予約を出す。荷物一覧とタグ・写真が表示されます。</div></div>
+<div class="step"><div class="num">2</div><div>「受取OTPを送信」ボタン → お客様のメールに6桁が届く（<b>10分間だけ有効</b>）。届かない場合は §9 へ。</div></div>
+<div class="step"><div class="num">3</div><div>お客様が受け取った6桁を入力。<span class="red">預け入れ時のOTPは使えません</span>（受取用は別番号）。</div></div>
+<div class="step"><div class="num">4</div><div>タグ番号と写真を照合して、正しい荷物を渡す。部分受け取り（何個かだけ）も可能。</div></div>
+<div class="step"><div class="num">5</div><div>返却期限を過ぎている場合は超過料金が表示される。店頭QRで精算 →「精算済み」にチェックしてから渡す。</div></div>
+<div class="box warn">必ず<b>タグ番号と写真で本人の荷物か確認</b>してから渡す。渡し間違いは重大事故です。</div>
+</section>
+
+<section id="e">
+<h2>4. 禁止物・受入拒否</h2>
+<p class="tri">VI: Vật cấm & từ chối nhận / EN: Prohibited items & refusal</p>
+<p>次のものは<span class="red">預かれません</span>。お客様に「これは入っていませんか？」と必ず口頭確認します（予約時にもチェック済み）。</p>
+<table>
+<tr><th>区分</th><th>例</th></tr>
+<tr><td>貴重品</td><td>現金・パスポート/身分証・宝石・貴金属・ブランド品</td></tr>
+<tr><td>電子機器・記録媒体</td><td>PC・ノート・タブレット・スマホ・HDD・SSD・USB・データ類</td></tr>
+<tr><td>危険物（火災系）</td><td>ガソリン・灯油・大量のアルコール・花火・ガスボンベ・スプレー缶・大量のモバイルバッテリー</td></tr>
+<tr><td>危険物（化学・薬物系）</td><td>化学物質・農薬・漂白剤・シンナー・ペンキ・毒物・医療廃棄物</td></tr>
+<tr><td>生物・食品系</td><td>生き物・動物・昆虫・生鮮/腐る食品・植物</td></tr>
+</table>
+<p>禁止物が見つかったら<b>「受入拒否」ボタン</b>を押す。予約はキャンセル扱い（手数料を引いて返金・記録が残る）。</p>
+<div class="box note">中身は基本的に開けて調べません。不所持は<b>お客様の申告（チェックボックス）</b>で担保します。申告に反して入れていた物が壊れても補償対象外です。</div>
+</section>
+
+<section id="f">
+<h2>5. 開披（ふたを開けて確認する）</h2>
+<p class="tri">VI: Mở kiểm tra / EN: Opening/inspection</p>
+<p>原則は絶対に開けません。ただし<span class="red">安全のために必要なとき</span>だけ、次の手順で開けられます。</p>
+<ol>
+<li>次のサインがあるとき：<b>煙・異臭・液漏れ・発熱・薬物の疑い</b>。</li>
+<li>1人で開けない。<b>責任者（店長/管理者）に連絡し、立会いのもとで</b>開ける。</li>
+<li>開ける前後の状態を<b>写真で記録</b>。運営にも報告（システムに記録が残ります）。</li>
+</ol>
+<div class="box warn">危険が大きいとき（爆発・強い異臭・発火のおそれ）は<b>開けずに §8 の緊急手順</b>へ。無理をしない。</div>
+</section>
+
+<section id="g">
+<h2>6. むき出しの荷物（お土産・紙袋など）</h2>
+<p class="tri">VI: Hành lý không có vali / EN: Loose items</p>
+<p>スーツケースだけでなく、紙袋のお土産など<b>むき出しの荷物</b>もあります。破損トラブルが起きやすいので特に丁寧に。</p>
+<ul>
+<li>預かる前に<b>今の状態を写真で細かく記録</b>（つぶれ・汚れ・中身の見える部分）。</li>
+<li>必要なら<b>袋やラップを提供</b>してまとめる。中身が飛び出さないように。</li>
+<li>壊れやすい物（陶器・食品・液体）は「割れ物です」とお客様に一声かけ、上に物を載せない。</li>
+<li>むき出し荷物は<b>床に直置きしない・積み重ねない</b>。専用スペースにやさしく置く。</li>
+</ul>
+<div class="box note">ベトナムと日本では荷物の扱い方の感覚が違うことがあります。「自分の大切な物」と同じ丁寧さで扱うのがKONCOCHII基準です。</div>
+</section>
+
+<section id="h">
+<h2>7. 重い荷物・体を守る（労災防止）</h2>
+<p class="tri">VI: Đồ nặng & an toàn / EN: Heavy items & safety</p>
+<ul>
+<li><b>重い荷物（目安20kg以上・Lサイズ）は無理せず2人で運ぶ</b>。1人で持ち上げない。</li>
+<li>持ち上げるときは<b>ひざを曲げて腰を落とす</b>。腰だけで持ち上げない（腰痛の原因）。</li>
+<li>高い棚の上げ下ろしは踏み台を使う。背伸びして無理をしない。</li>
+<li>通路をふさがない。荷物でつまずかない導線を保つ。</li>
+</ul>
+</section>
+
+<section id="i">
+<h2>8. 緊急時（火・煙・液漏れ・異臭・虫）</h2>
+<p class="tri">VI: Khẩn cấp / EN: Emergency</p>
+<div class="step"><div class="num">1</div><div><span class="red">荷物に触れない・動かさない</span>。</div></div>
+<div class="step"><div class="num">2</div><div>すぐに<b>責任者へ報告</b>。</div></div>
+<div class="step"><div class="num">3</div><div>可能なら<b>その荷物を安全な場所へ隔離</b>（無理なら周囲の人を遠ざける）。</div></div>
+<div class="step"><div class="num">4</div><div>火災・発煙・危険物のおそれ → <b>消防（114）</b>へ連絡。</div></div>
+<div class="step"><div class="num">5</div><div>盗品・違法物・薬物のおそれ → <b>警察（113）</b>へ連絡し、証拠を保全。</div></div>
+<div class="box warn">人の安全が最優先。荷物やサービスより<b>人命・けが防止</b>を優先する。迷ったら責任者と消防/警察へ。</div>
+<p class="note">※ベトナムの緊急番号：消防114 / 警察113 / 救急115。店舗の掲示も確認。</p>
+</section>
+
+<section id="j">
+<h2>9. よくあるトラブルと対応</h2>
+<p class="tri">VI: Xử lý sự cố / EN: Common issues</p>
+<table>
+<tr><th>状況</th><th>対応</th></tr>
+<tr><td>受取OTPがお客様に届かない（メール不着・データSIM）</td><td>お客様の<b>予約ページ（マイ予約）に同じ6桁が表示</b>されます。それを見てもらう。それも無理なら運営へ連絡（本人確認：登録メール/電話一致＋パスポートで手動対応）。</td></tr>
+<tr><td>OTPを5回間違えてロック</td><td>15分待つか、運営に連絡して解除してもらう。お客様に「安全のための仕組み」と説明。</td></tr>
+<tr><td>お客様がメールアドレスを間違えた</td><td><b>預け入れ前なら</b>予約ページから本人が修正できる。預け入れ後は運営対応。</td></tr>
+<tr><td>「傷がついた」と言われた</td><td>預け入れ時と引渡し時の<b>写真を一緒に確認</b>。申告は<b>引渡し後24時間以内</b>のみ受付。責任者に報告し、勝手に金銭対応しない。</td></tr>
+<tr><td>荷物が期限を過ぎても取りに来ない</td><td>システムが自動で通知。7日を過ぎたら運営が保管拠点へ移送（店舗の棚を空ける）。店舗判断で処分しない。</td></tr>
+<tr><td>泥酔・暴力・本人確認拒否・虚偽申告のお客様</td><td><b>利用をお断りできる</b>。1人で対応せず責任者へ。身の危険を感じたら警察。</td></tr>
+</table>
+</section>
+
+<section id="k">
+<h2>10. やってはいけないこと（禁止事項）</h2>
+<p class="tri">VI: Điều cấm kỵ / EN: Never do</p>
+<ul>
+<li><span class="red">写真を撮らずに預からない</span>。タグ番号を付け忘れない。</li>
+<li><span class="red">タグ・写真を照合せずに荷物を渡さない</span>（渡し間違い防止）。</li>
+<li>スタッフコード・パスワードを共有しない。荷物の中身を勝手に見ない・触らない（§5の開披を除く）。</li>
+<li>お客様の個人情報（メール・電話）を口外しない・メモして持ち出さない。</li>
+<li>期限切れ荷物を店舗の判断で処分しない・持ち帰らない。</li>
+<li>金銭トラブルをその場で自己判断で解決しない（必ず責任者・運営へ）。</li>
+</ul>
+</section>
+
+<footer>KONCOCHII スタッフ運用・研修マニュアル v1.0（2026-07-28）／ 規約・仕様（specs/04・06・12.10-C-1・16）に準拠。改定時は本書とアプリ表示を合わせること。現地語（ベトナム語）全訳は別途用意。</footer>
+</main>
+</body>
+</html>
